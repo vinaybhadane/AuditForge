@@ -39,9 +39,12 @@ class Settings(BaseSettings):
     # Supabase & PostgreSQL Configuration
     SUPABASE_URL: Optional[str] = "https://YOUR_PROJECT.supabase.co"
     SUPABASE_ANON_KEY: Optional[str] = "YOUR_PUBLIC_ANON_KEY"
-    SUPABASE_JWT_ISSUER: Optional[str] = "https://YOUR_PROJECT.supabase.co/auth/v1"
+    SUPABASE_JWT_ISSUER: Optional[str] = None
+    SUPABASE_JWT_SECRET: Optional[str] = "auditforge-test-secret-key-minimum-32-chars-long"
+    SUPABASE_JWT_AUDIENCE: Optional[str] = "authenticated"
     SUPABASE_SERVICE_ROLE_KEY: Optional[str] = None
     DATABASE_URL: Optional[str] = "postgresql+psycopg://postgres:postgres@localhost:5432/auditforge"
+
 
     # Storage Buckets and Limits
     EVIDENCE_BUCKET: str = "auditforge-evidence"

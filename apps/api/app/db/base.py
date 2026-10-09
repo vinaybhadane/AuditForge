@@ -1,8 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, MetaData
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import DateTime, MetaData, Uuid
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 # Consistent PostgreSQL naming conventions for migrations/constraints
@@ -36,9 +35,10 @@ class TimestampMixin:
 
 
 class UUIDPrimaryKeyMixin:
-    """UUID primary key mixin."""
+    """UUID primary key mixin compatible with PostgreSQL and SQLite."""
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        Uuid(as_uuid=True),
         primary_key=True,
         default=uuid.uuid4,
     )
+
