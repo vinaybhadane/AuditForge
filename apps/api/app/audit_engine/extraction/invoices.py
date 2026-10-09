@@ -1,0 +1,94 @@
+"""Invoice document extractor and line arithmetic validator."""
+
+import re
+from decimal import Decimal
+from typing import Any, Dict, List
+from uuid import UUID
+
+from app.audit_engine.contracts.responses import ExtractedRecord
+from app.audit_engine.extraction.structured_fields import (
+    make_field,
+    normalize_unit,
+    parse_date_safe,
+    parse_decimal_safe,
+)
+
+
+def extract_invoice_fields(text: str, evidence_id: UUID) -> ExtractedRecord:
+    """Extract structured fields and line items from invoice text."""
+    fields = {}
+    line_items: List[Dict[str, Any]] = []
+
+    # 1. Invoice Number
+    inv_num_match = re.search(r"(?:invoice\s*(?:no|number|#)?[:\s]*)([A-Za-z0-9\-_/]+)", text, re.IGNORECASE)
+    inv_num = inv_num_match.group(1).strip() if inv_num_match else None
+    fields["invoice_number"] = make_field(
+        "invoice_number", inv_num, inv_num, confidence=0.95 if inv_num else 0.0, is_uncertain=not bool(inv_num)
+    )
+
+    # 2. Vendor Name
+    vendor_match = re.search(r"(?:vendor|supplier|from)[:\s]*([A-Za-z0-9\s.,&]+?)(?:\n|invoice|date|gst)", text, re.IGNORECASE)
+    vendor_name = vendor_match.group(1).strip() if vendor_match else None
+    fields["vendor_name"] = make_field(
+        "vendor_name", vendor_name, vendor_name, confidence=0.90 if vendor_name else 0.0, is_uncertain=not bool(vendor_name)
+    )
+
+    # 3. Invoice Date
+    date_match = re.search(r"(?:date|invoice\s*date)[:\s]*(\d{1,4}[-/.]\d{1,2}[-/.]\d{1,4}|\d{1,2}\s+[A-Za-z]+\s+\d{4})", text, re.IGNORECASE)
+    raw_date = date_match.group(1).strip() if date_match else None
+    norm_date = parse_date_safe(raw_date)
+    fields["invoice_date"] = make_field(
+        "invoice_date", raw_date, norm_date, confidence=0.92 if norm_date else 0.0, is_uncertain=not bool(norm_date)
+    )
+
+    # 4. PO Reference
+    po_match = re.search(r"(?:po\s*(?:no|number|ref|reference)?[:\s]*)([A-Za-z0-9\-_/]+)", text, re.IGNORECASE)
+    po_ref = po_match.group(1).strip() if po_match else None
+    fields["po_reference"] = make_field("po_reference", po_ref, po_ref, confidence=0.88 if po_ref else 0.0)
+
+    # 5. Financial Totals
+    total_match = re.search(r"(?:total\s*amount|grand\s*total|total)[:\s]*([₹$€\s]*\d[\d,.]*)", text, re.IGNORECASE)
+    raw_total = total_match.group(1).strip() if total_match else None
+    norm_total = parse_decimal_safe(raw_total)
+    fields["total_amount"] = make_field(
+        "total_amount", raw_total, norm_total, confidence=0.95 if norm_total else 0.0, is_uncertain=not bool(norm_total)
+    )
+
+    # 6. Extract Line Items (e.g. "OPC 53 Cement - 100 bags @ 380 = 38000")
+    # Pattern: Description ... Quantity ... Unit ... Price ... Total
+    lines = text.split("\n")
+    for line in lines:
+        item_match = re.search(
+            r"([A-Za-z0-9\s\-_]+?)\s+[-:]?\s*(\d+(?:\.\d+)?)\s*(bags?|kgs?|tonnes?|nos?|pcs?|m|cum)\s*[@x]\s*(\d+(?:\.\d+)?)\s*(?:=|total)?\s*(\d+(?:\.\d+)?)",
+            line,
+            re.IGNORECASE,
+        )
+        if item_match:
+            desc = item_match.group(1).strip()
+            qty = parse_decimal_safe(item_match.group(2))
+            unit = normalize_unit(item_match.group(3))
+            price = parse_decimal_safe(item_match.group(4))
+            line_tot = parse_decimal_safe(item_match.group(5))
+
+            if qty and price:
+                computed_tot = qty * price
+                is_mismatch = (line_tot is not None) and (abs(computed_tot - line_tot) > Decimal("0.01"))
+                line_items.append({
+                    "description": desc,
+                    "quantity": qty,
+                    "unit": unit,
+                    "unit_price": price,
+                    "stated_total": line_tot,
+                    "computed_total": computed_tot,
+                    "arithmetic_mismatch": is_mismatch,
+                })
+
+    return ExtractedRecord(
+        evidence_id=evidence_id,
+        document_type="invoice",
+        document_number=inv_num,
+        vendor_name=vendor_name,
+        document_date=norm_date,
+        fields=fields,
+        line_items=line_items,
+    )
