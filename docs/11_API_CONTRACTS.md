@@ -32,8 +32,8 @@ Do not expose private records or internal exceptions in `details`. Status mappin
 | `GET,PATCH /milestones/{milestone_id}` | Milestone detail/update | Project-scoped permission |
 | `GET,POST /projects/{project_id}/boq-items` | List/create BOQ | Read/baseline editor |
 | `PATCH /boq-items/{boq_item_id}` | Edit baseline item | Explicit baseline permission |
-| `POST /projects/{project_id}/evidence/uploads` | Initiate secure upload | Evidence uploader |
-| `POST /evidence/{id}/complete-upload` | Verify upload and queue processing | Uploader/permitted operator |
+| `POST /projects/{project_id}/evidence/uploads` | Initiate evidence ingestion (live capture or upload) | Evidence submitter |
+| `POST /evidence/{id}/complete-upload` | Verify payload and queue processing | Submitter/permitted operator |
 | `GET /projects/{project_id}/evidence` | List evidence | Project read |
 | `GET /evidence/{id}` | Evidence metadata/results | Project read |
 | `POST /evidence/{id}/process` | Queue/reprocess | Allowed operator, idempotent |
@@ -72,18 +72,63 @@ Do not expose private records or internal exceptions in `details`. Status mappin
 ```
 Return `201` with project ID, organization, name/code, status, baseline version, timestamps. Verify actor can create in that organization.
 
-### Initiate upload — `POST /api/v1/projects/{project_id}/evidence/uploads`
+### Initiate evidence ingestion — `POST /api/v1/projects/{project_id}/evidence/uploads`
+**Modality Policy:** For `evidence_type: "site_photo"`, `ingestion_source` MUST be `"live_capture"`. Submitting `ingestion_source: "file_upload"` for `site_photo` is rejected with HTTP `422` (`code: INVALID_INGESTION_SOURCE`). For vendor documents (`invoice`, `delivery_challan`, `purchase_order`, `goods_receipt`), `ingestion_source` may be `"file_upload"` or `"live_capture"`.
+
+**Case A: Site Photo (Live Camera Capture Only)**
 ```json
 {
-  "filename": "column-work.jpg",
+  "evidence_type": "site_photo",
+  "ingestion_source": "live_capture",
+  "filename": "site_capture_20261009_161500.jpg",
   "declared_content_type": "image/jpeg",
   "size_bytes": 2481200,
-  "evidence_type": "site_photo",
   "milestone_id": "uuid",
-  "source_notes": "North-east columns, inspection visit"
+  "capture_metadata": {
+    "captured_at": "2026-10-09T10:45:00Z",
+    "device_client": "AuditForge Web Camera Stream v1",
+    "camera_facing": "environment",
+    "geo_location": {
+      "latitude": 19.0760,
+      "longitude": 72.8777,
+      "accuracy_meters": 12.5
+    }
+  },
+  "source_notes": "North-east columns, live on-site inspection"
 }
 ```
-Return `201` with evidence ID, short-lived upload instructions, required headers, expiry, and `upload_status: initiated`. URL is secret-like; do not log it. Server generates the object key and ignores client storage paths.
+
+**Case B: Vendor Document (File Upload Option)**
+```json
+{
+  "evidence_type": "invoice",
+  "ingestion_source": "file_upload",
+  "filename": "vendor_inv_1092.pdf",
+  "declared_content_type": "application/pdf",
+  "size_bytes": 1450000,
+  "milestone_id": null,
+  "source_notes": "Vendor invoice PDF received via email"
+}
+```
+
+**Case C: Vendor Document (Live Camera Scan Option)**
+```json
+{
+  "evidence_type": "delivery_challan",
+  "ingestion_source": "live_capture",
+  "filename": "challan_scan_440.jpg",
+  "declared_content_type": "image/jpeg",
+  "size_bytes": 1980000,
+  "milestone_id": null,
+  "capture_metadata": {
+    "captured_at": "2026-10-09T10:50:00Z",
+    "device_client": "AuditForge Web Camera Stream v1",
+    "camera_facing": "environment"
+  },
+  "source_notes": "Physical paper challan scanned on arrival"
+}
+```
+Return `201` with evidence ID, short-lived upload/transfer instructions, required headers, expiry, and `upload_status: initiated`. URL is secret-like; do not log it. Server generates the object key and ignores client storage paths.
 
 ### Job status — `GET /api/v1/jobs/{job_id}`
 ```json
@@ -133,4 +178,4 @@ Re-evaluate eligibility, verify authorized approval, snapshot evidence/reconcili
 Use bounded `limit` (for example maximum 100) and stable/opaque cursors for changing datasets. Allowlist sort fields; never interpolate arbitrary SQL order clauses. Large exports are jobs. Bind idempotency keys to actor/scope/request hash; same key with different payload returns conflict. Use optimistic concurrency for baseline/review state changes.
 
 ## Error codes and contract testing
-Use stable codes: `AUTH_REQUIRED`, `FORBIDDEN`, `RESOURCE_NOT_FOUND`, `VALIDATION_ERROR`, `STATE_CONFLICT`, `IDEMPOTENCY_CONFLICT`, `UNSUPPORTED_MEDIA_TYPE`, `PAYLOAD_TOO_LARGE`, `RATE_LIMITED`, `PROVIDER_UNAVAILABLE`, `PROCESSING_FAILED`, `CLEARANCE_BLOCKED`, `INTERNAL_ERROR`. Generated OpenAPI must match semantics. Test required fields, status codes, authorization, errors, decimal serialization, pagination bounds, idempotency, and version conflicts. Update this document and tests together.
+Use stable codes: `AUTH_REQUIRED`, `FORBIDDEN`, `RESOURCE_NOT_FOUND`, `VALIDATION_ERROR`, `INVALID_INGESTION_SOURCE`, `STATE_CONFLICT`, `IDEMPOTENCY_CONFLICT`, `UNSUPPORTED_MEDIA_TYPE`, `PAYLOAD_TOO_LARGE`, `RATE_LIMITED`, `PROVIDER_UNAVAILABLE`, `PROCESSING_FAILED`, `CLEARANCE_BLOCKED`, `INTERNAL_ERROR`. Generated OpenAPI must match semantics. Test required fields, status codes, authorization, errors, decimal serialization, pagination bounds, idempotency, and version conflicts. Update this document and tests together.

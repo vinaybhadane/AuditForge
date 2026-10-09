@@ -1,7 +1,7 @@
 # 09 — Material Reconciliation
 
 ## Objective and vocabulary
-Provide deterministic, reproducible comparisons across BOQ expectations, purchase orders, invoices, delivery challans, goods receipts, inventory movements, issues, returns, and supported consumption estimates. Distinguish **planned**, **ordered**, **invoiced**, **challaned**, **physically received**, **issued**, **returned**, and **consumed** quantities. Purchased is not delivered; delivered is not received; issued is not necessarily consumed. Wastage allowance is project/material-specific policy, not a universal constant.
+Provide deterministic, reproducible comparisons across BOQ expectations, purchase orders, invoices, delivery challans (ingested via digital file upload or live camera scan), goods receipts, inventory movements, issues, returns, and supported consumption estimates. Distinguish **planned**, **ordered**, **invoiced**, **challaned**, **physically received**, **issued**, **returned**, and **consumed** quantities. Purchased is not delivered; delivered is not received; issued is not necessarily consumed. Wastage allowance is project/material-specific policy, not a universal constant.
 
 ## Versioned input snapshot
 Every reconciliation run records project, period/cutoff, baseline version, selected transaction IDs/versions, material mappings, unit conversions, tolerances, algorithm version, and snapshot hash/reference. Changed inputs create a new run. Historical outputs are never rewritten.

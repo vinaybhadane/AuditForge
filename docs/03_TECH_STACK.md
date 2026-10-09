@@ -8,6 +8,8 @@ Choose a small, maintainable stack for a hackathon MVP with a credible growth pa
 
 **Tailwind CSS + accessible primitives:** design tokens and responsive layout; use shadcn/ui or an equivalent selectively. Copied component source still needs maintenance/accessibility checks. Avoid overlapping component libraries.
 
+**MediaDevices / WebRTC Camera APIs:** client camera integration (`navigator.mediaDevices.getUserMedia`) with environment/rear-camera facing mode, capture trigger, preview/retake, and capture telemetry (timestamp, optional geolocation coordinates). File-picker image upload is deliberately disabled for site progress photos to enforce real-time on-site capture. For vendor documents (invoices, challans, receipts), both standard drag-and-drop file inputs and live camera scanning are supported.
+
 **React Hook Form + Zod:** form ergonomics and early validation; backend validation remains authoritative. **TanStack Query:** use where async server state, polling, caching, and invalidation justify it. **Recharts or equivalent:** accessible charts with labels, textual interpretation, and empty states.
 
 ## 3D homepage only
@@ -25,7 +27,7 @@ Choose a small, maintainable stack for a hackathon MVP with a credible growth pa
 
 **Supabase PostgreSQL:** authoritative operational data, constraints, indexes, snapshots, and audit history. Use RLS for any direct browser access, while retaining backend authorization.
 
-**Supabase Storage or equivalent private object storage:** evidence and reports. Private buckets, validated uploads, safe object keys, and short-lived signed URLs are required. Check current plan limits and retention/provider terms before deployment.
+**Supabase Storage or equivalent private object storage:** evidence and reports. Private buckets, validated payloads (live capture frames and document uploads), safe object keys, and short-lived signed URLs are required. Check current plan limits and retention/provider terms before deployment.
 
 ## AI and document processing
 **VLM adapter:** a provider such as Google Gemini can produce candidate visual observations against explicit criteria. Keep provider-specific code behind an interface; record model ID/prompt/schema versions; bound timeout, payload, retry, and cost. No provider output directly approves a milestone.

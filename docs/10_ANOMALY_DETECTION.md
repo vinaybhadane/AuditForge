@@ -21,9 +21,10 @@ MVP prioritizes deterministic checks and a small number of explainable pattern r
 | AN-005 | Negative stock/issue beyond available stock | Ledger snapshot | Cutoff, transfers, delayed posting matter |
 | AN-006 | Issue exceeds configured BOQ allowance | Baseline, unit mapping, issues, returns | Issue is not actual consumption |
 | AN-007 | Repeated high wastage vs comparable history | Sufficient comparable history | Projects/materials differ |
-| AN-008 | Timestamp/GPS inconsistency | File metadata and project context | Metadata can be missing/edited/inaccurate |
+| AN-008 | Timestamp/GPS inconsistency | Live camera capture telemetry, device sensor logs, and project coordinates | Hardware drift, indoor GPS attenuation, or clock skew may explain differences |
 | AN-009 | Near-duplicate imagery | Perceptual hash/similarity candidate | Repeated progress photos may be valid |
-| AN-010 | Required evidence missing | Criteria version and linked evidence | Missing upload is not proof of fabricated work |
+| AN-010 | Required evidence missing | Criteria version and linked live captures/documents | Missing capture or document is not proof of fabricated work |
+| AN-011 | Ingestion modality violation attempt | Submissions attempting file-picker upload for `site_photo` | Client/API enforcement blocks upload; flagged as policy violation attempt |
 
 ## Severity policy
 - `info`: informational difference/incomplete context.

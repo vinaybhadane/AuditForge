@@ -2,13 +2,13 @@
 
 **Every Claim. Verified by Evidence.**
 
-AuditForge is an evidence-first construction operations auditing platform. It correlates site photographs, milestone acceptance criteria, purchase orders, invoices, delivery challans, goods receipts, stock movements, and material reconciliation. AI assists with visual observations and document extraction; deterministic rules calculate discrepancies; authorized humans make review and clearance decisions.
+AuditForge is an evidence-first construction operations auditing platform. It correlates live-captured site photographs, milestone acceptance criteria, purchase orders, invoices, delivery challans, goods receipts, stock movements, and material reconciliation. Construction site evidence strictly mandates live camera capture to guarantee on-site presence (file upload disabled for site photos), while vendor documents (invoices, challans, receipts) support both file upload and live camera scanning. AI assists with visual observations and document extraction; deterministic rules calculate discrepancies; authorized humans make review and clearance decisions.
 
 > AuditForge is decision support. An anomaly is not proof of fraud, and AI output is not an engineering or regulatory certification.
 
 ## Goals
-- Verify milestone claims against documented criteria and available evidence.
-- Extract structured information from invoices, challans, purchase orders, and receipts.
+- Verify milestone claims against documented criteria using tamper-evident live camera captures.
+- Extract structured information from invoices, challans, purchase orders, and receipts (via file upload or live camera scan).
 - Reconcile quantities and financial values reproducibly.
 - Surface unusual consumption, duplicate documents, and inconsistent records.
 - Provide evidence-linked investigations and human-reviewed clearance decisions.
@@ -74,5 +74,5 @@ Do not invent package scripts before they exist. Keep this README synchronized w
 - Keep evidence/report storage private by default.
 - Verify JWTs server-side and authorize every project operation.
 - Use RLS for direct database access while retaining backend authorization.
-- Treat uploaded files and OCR/VLM output as untrusted.
+- Treat uploaded files, live camera capture streams, and OCR/VLM output as untrusted.
 - Keep reconciliation deterministic and decisions auditable.

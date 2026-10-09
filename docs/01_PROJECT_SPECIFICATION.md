@@ -18,8 +18,8 @@ Construction records are fragmented across photographs, PDFs, spreadsheets, pape
 ## Personas
 | Persona | Primary responsibilities |
 |---|---|
-| Site Supervisor | Upload site evidence, link it to milestones, respond to evidence requests |
-| Store In-Charge | Submit receipt/issue records, attach challans, resolve inventory gaps |
+| Site Supervisor | Capture live site evidence via camera, link it to milestones, respond to evidence requests |
+| Store In-Charge | Submit receipt/issue records, attach challans (upload or live scan), resolve inventory gaps |
 | Project Auditor | Review evidence, run reconciliation, investigate findings, record decisions when designated |
 | Project Manager | Monitor work and resolve blockers; approval rights must be explicit |
 | Organization Administrator | Manage organization membership and assignments without bypassing audit history |
@@ -30,7 +30,7 @@ Every role is scoped by organization and, where relevant, project membership. Fr
 ## MVP scope
 - Supabase Auth, profile, organization/project membership and role checks.
 - Projects, versioned milestones/acceptance criteria, BOQ, materials, units, approved wastage policy.
-- Private evidence upload, metadata, SHA-256 hash, status, history, and authorized retrieval.
+- Private evidence ingestion: live camera-only capture for site progress photos (local file upload disabled to guarantee on-site presence and fresh provenance); dual-mode ingestion (file upload and live camera scan) for vendor documents (invoices, challans, receipts); metadata, SHA-256 hash, status, history, and authorized retrieval.
 - OCR/PDF extraction with human correction of uncertain fields.
 - VLM candidate visual observations tied to criteria and evidence.
 - Canonical material/unit normalization.
@@ -50,7 +50,7 @@ Autonomous fraud accusations/penalties; automatic engineering/regulatory certifi
 | FR-003 | Manage projects | Project saved under correct organization and audit event created |
 | FR-004 | Version milestone criteria | Historical criteria version remains referenceable |
 | FR-005 | Store BOQ with canonical units | Invalid or incompatible units rejected |
-| FR-006 | Secure evidence ingestion | File validated, hashed, stored privately, audited |
+| FR-006 | Secure evidence ingestion | Live camera capture enforced for site photos; dual upload/camera options for documents; payloads validated, hashed, stored privately, audited |
 | FR-007 | Track processing jobs | Status, attempts, outputs, and failures persisted |
 | FR-008 | Extract document fields | Raw source, normalized candidate, provenance, uncertainty retained |
 | FR-009 | Produce VLM observations | Schema-valid result references evidence and limitations |
@@ -74,7 +74,7 @@ Autonomous fraud accusations/penalties; automatic engineering/regulatory certifi
 | NFR-003 | Reproducible financial math | Decimal-based test vectors |
 | NFR-004 | UI distinguishes AI from verified facts | UX review |
 | NFR-005 | Async jobs do not block API requests | Job submission/polling integration test |
-| NFR-006 | Upload limits enforced | Boundary/malformed file tests |
+| NFR-006 | Ingestion limits enforced | Live capture stream and document upload boundary/malformed file tests |
 | NFR-007 | Audit history retained | Correction and decision history tests |
 | NFR-008 | Accessible core flows | Keyboard, focus, labels, contrast tests |
 | NFR-009 | 3D fallback/reduced motion | WebGL-off and reduced-motion checks |
@@ -87,9 +87,9 @@ Set performance SLAs only after measuring the actual deployment and dataset.
 ## Core journeys
 **Project setup:** admin creates project, assigns members, defines baseline, criteria, BOQ, units, and wastage policy. Baseline changes create a new version.
 
-**Visual evidence:** supervisor uploads a photo, selects milestone, and submits. The backend validates/stores it and queues quality checks and VLM assessment. Results are candidate observations awaiting review; inconclusive is valid.
+**Visual evidence:** supervisor captures live on-site photo using device camera (pre-existing image file upload disabled for site evidence to enforce on-site presence and fresh provenance), selects milestone, reviews live capture metadata (capture timestamp, optional device geolocation), and submits. The backend validates/stores it and queues quality checks and VLM assessment. Results are candidate observations awaiting review; inconclusive is valid.
 
-**Document processing:** store user uploads invoice/challan. OCR extracts candidate fields; arithmetic/reference validation runs; original values and uncertainty remain visible. Corrections are attributed and versioned before affecting authoritative reconciliation.
+**Document processing:** store user uploads invoice/challan (PDF/image file) or uses live camera capture to scan physical paper documents on arrival. OCR extracts candidate fields; arithmetic/reference validation runs; original values and uncertainty remain visible. Corrections are attributed and versioned before affecting authoritative reconciliation.
 
 **Reconciliation:** auditor selects period, baseline, and input snapshot. Deterministic rules compare order, delivery, receipt, ledger, BOQ, and supported issue data. Findings cite source records and formulas.
 

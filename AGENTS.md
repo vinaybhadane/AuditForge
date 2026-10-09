@@ -20,9 +20,10 @@ AuditForge is an evidence-first construction audit platform. It assesses milesto
 3. GPS/timestamp inconsistencies are signals, not proof of tampering.
 4. SHA-256 can detect changes relative to a known hash; it does not establish original authenticity.
 5. One photograph generally cannot establish exact completion percentage or hidden construction quality.
-6. Never equate purchased, delivered, received, issued, and consumed quantities.
-7. A clearance certificate requires documented eligibility checks and an authorized human decision. AI confidence alone cannot clear a milestone.
-8. Never invent accuracy, savings, users, certifications, or demo results.
+6. Construction site progress evidence strictly requires verified live camera capture; uploading pre-existing gallery/disk image files is disabled to enforce physical presence and freshness. Vendor documents (invoices, challans, receipts, POs) support both digital file upload and live camera scanning.
+7. Never equate purchased, delivered, received, issued, and consumed quantities.
+8. A clearance certificate requires documented eligibility checks and an authorized human decision. AI confidence alone cannot clear a milestone.
+9. Never invent accuracy, savings, users, certifications, or demo results.
 
 ## Code and domain rules
 - Keep route handlers thin; business logic belongs in testable service/domain modules.
@@ -37,8 +38,8 @@ AuditForge is an evidence-first construction audit platform. It assesses milesto
 - Verify JWT signature, issuer, expiry, and relevant claims with a supported method; never merely decode a token.
 - Resolve organization/project access from trusted membership records. Never trust a client-supplied role or organization ID as proof of access.
 - Never expose service-role keys, database credentials, signing secrets, or AI keys in browser code or `NEXT_PUBLIC_` variables.
-- Keep evidence buckets private. Validate file extension, declared and detected MIME, signature, size, and parser behavior. Use random object keys.
-- Treat uploaded documents, OCR output, VLM output, and external provider responses as untrusted data. Defend against prompt injection and malformed/oversized files.
+- Keep evidence buckets private. Validate file extension, declared and detected MIME, signature, size, and parser behavior. Enforce ingestion modality rules (reject pre-existing image file uploads for site photos; require live camera capture session; allow both file uploads and camera scans for documents). Use random object keys.
+- Treat uploaded documents, live capture frames, OCR output, VLM output, and external provider responses as untrusted data. Defend against prompt injection and malformed/oversized files.
 - Do not fetch arbitrary URLs found in documents. Any URL-ingestion feature requires a separately reviewed SSRF-safe design.
 - Rate-limit expensive operations and make retries idempotent. Never weaken authorization or tests merely to pass a build.
 

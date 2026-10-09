@@ -20,6 +20,10 @@ Prove the core workflow is correct, secure, reproducible, and honest about uncer
 | FR-002 | AUTHZ-002 | Client submits `role=admin` | Membership-derived role prevails |
 | FR-006 | FILE-001 | JPEG MIME with invalid bytes | Rejected/quarantined |
 | FR-006 | FILE-002 | Size/page/pixel limit exceeded | Stable safe error |
+| FR-006 | FILE-003 | File upload attempted for `site_photo` | Rejected with 422 `INVALID_INGESTION_SOURCE` |
+| FR-006 | FILE-004 | Live camera capture for `site_photo` | Accepted with capture telemetry; processing queued |
+| FR-006 | FILE-005 | File upload for document (`invoice`/`challan`) | Accepted; OCR processing queued |
+| FR-006 | FILE-006 | Live camera scan for document (`invoice`/`challan`) | Accepted with capture telemetry; OCR processing queued |
 | FR-007 | JOB-001 | Provider timeout | Visible job failure/retry state |
 | FR-008 | OCR-001 | Uncertain field/total mismatch | Candidate flagged, not silently accepted |
 | FR-009 | VLM-001 | Malformed model JSON | Rejected; no authoritative mutation |
@@ -50,7 +54,7 @@ For each role, test read/list/create/update/delete or equivalent actions on proj
 Maintain versioned representative photos/documents with expected annotations and reviewer outcomes where rights allow. Measure field-level OCR accuracy, schema-valid rate, visual-observation agreement, inconclusive rate, correction rate, latency, and cost. Report dataset size and limits. Never claim measured accuracy from mocks alone.
 
 ## UI/accessibility
-Keyboard-only flows through login/upload/review/decision; visible focus; correct labels; contrast; reduced motion; accessible async status; mobile tables/dialogs; preserved input after recoverable errors; 3D canvas has text alternative and never traps focus.
+Keyboard-only flows through login, live camera capture (viewfinder activation, shutter trigger, preview/retake, confirm), document intake (file drag-and-drop or camera scan), review, and decision; visible focus; camera permission denied/granted states; correct labels; contrast; reduced motion; accessible async status; mobile tables/dialogs; preserved input after recoverable errors; 3D canvas has text alternative and never traps focus.
 
 ## Resilience and CI
 Test large-but-allowed files, long PDFs, concurrent jobs, provider latency, database/storage outages, retry storms, rate limits, stale worker recovery, and failure recovery. CI gates should include formatting, lint, types, unit/API tests, migration checks, frontend tests, secret/dependency scans, and targeted E2E smoke. Provider-dependent tests may run separately if costly/flaky.

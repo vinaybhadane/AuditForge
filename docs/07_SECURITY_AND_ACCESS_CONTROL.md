@@ -10,8 +10,8 @@ Supabase Auth establishes identity; FastAPI must cryptographically verify token 
 | Action | Supervisor | Store In-Charge | Auditor | Project Manager | Org Admin |
 |---|---|---|---|---|---|
 | View assigned project | Yes | Yes | Yes | Yes | Organization scope |
-| Upload milestone evidence | Yes | Contextual | If assigned | If assigned | Not automatically |
-| Submit receipts/issues | No by default | Yes | Review/read | Explicit grant | Not automatically |
+| Ingest milestone evidence (live camera only for site photos) | Yes | Contextual | If assigned | If assigned | Not automatically |
+| Submit receipts/issues | No by default | Yes (upload or camera) | Review/read | Explicit grant | Not automatically |
 | Edit baseline/BOQ | No | No | Review only by default | Explicit grant | Policy-dependent |
 | Run reconciliation | Read results | Limited | Yes | Explicit grant | Not automatically |
 | Review findings | Respond to requests | Respond to inventory requests | Yes | Explicit grant | Not automatically |
@@ -23,8 +23,8 @@ This is a safe default, not a universal legal policy. Implement explicit permiss
 ## RLS and database access
 Use RLS on tables accessible from the browser. Define SELECT/INSERT/UPDATE/DELETE policies separately. Derive access through authenticated identity and membership relations, never a caller-provided organization ID. Test two organizations and nested child resources. A privileged service-role connection may bypass RLS; FastAPI must still authorize every action and use least-privileged DB access where possible. Never expose a service-role key in browser code or `NEXT_PUBLIC_` variables.
 
-## Evidence storage
-Private buckets by default. Use random object keys and treat original filenames as display metadata only. Validate extension, declared/detected MIME, file signature, size, and parser result. Enforce page/pixel/expanded-size limits. Issue short-lived signed URLs only after authorization and never log full URLs. Reauthorize downloads/previews/certificates. Clean up abandoned uploads safely.
+## Evidence storage and ingestion integrity
+Private buckets by default. Use random object keys and treat original filenames as display metadata only. Enforce strict ingestion modality controls: construction site photos must be captured live through the in-app camera stream (`live_capture`); file upload from disk or gallery is denied at both UI and API levels to prevent recycling stale, stock, or edited progress photos. Vendor documents (`invoice`, `delivery_challan`, etc.) accept both authenticated direct file uploads and live camera scans. Validate extension, declared/detected MIME, file signature, size, and parser result. Enforce page/pixel/expanded-size limits. Issue short-lived signed URLs only after authorization and never log full URLs. Reauthorize downloads/previews/certificates. Clean up abandoned uploads/sessions safely.
 
 ## AI/document threats
 Uploaded content may contain prompt injection, hidden text, malicious links, or malformed structures. OCR/VLM output is data, not instructions. Models must not invoke privileged tools, execute SQL, alter roles, or issue certificates. Validate model output strictly. Do not automatically fetch URLs found in documents. If URL ingestion is added later, require DNS/IP validation, redirect restrictions, private-address blocking, egress controls, timeouts, allowlists where practical, and size limits to mitigate SSRF.
@@ -41,6 +41,7 @@ Record actor, action, target, timestamp, request ID, outcome, and safe metadata 
 | Cross-tenant IDOR | Membership/project checks on every record | User A guesses User B IDs; no data returned |
 | Role escalation | Server derives role from membership | Request body says `role=admin`; ignored/rejected |
 | Malicious upload | Signature/type/size checks, restricted parsing | MIME spoof, oversized file, malformed PDF rejected safely |
+| Recycled/spoofed site photo | Enforce live camera capture session; reject file uploads for `site_photo` | Attempting `POST /uploads` for `site_photo` with `file_upload` returns 422 `INVALID_INGESTION_SOURCE` |
 | Prompt injection | Untrusted-content prompt, no privileged tools, schema validation | “Ignore rules” document cannot change permissions/domain state |
 | SQL injection | ORM/parameterized queries | Adversarial input treated as data |
 | Secret leakage | Secret scan, server-only env, log redaction | Build/log scan finds no secrets |

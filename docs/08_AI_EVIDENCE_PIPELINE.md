@@ -4,9 +4,9 @@
 The pipeline converts source evidence into structured, reviewable candidate observations. It does not autonomously determine fraud, legal liability, exact physical completion, or clearance. Deterministic business rules remain authoritative for arithmetic and eligibility.
 
 ## Pipeline stages
-1. **Upload validation:** authenticate, authorize, check type/size/signature, store privately.
-2. **Registration:** assign evidence ID, object key, hash, uploader, project/milestone, timestamps.
-3. **Classification:** image, PDF, invoice, challan, PO, receipt, or unknown.
+1. **Ingestion & modality validation:** authenticate, authorize, check modality constraints (site progress photos must originate from authenticated live camera capture; vendor documents accept direct file upload or live camera scan), check media type/size/signature, store privately.
+2. **Registration:** assign evidence ID, object key, hash, ingestion mode (`live_capture` vs `file_upload`), capture telemetry (device capture timestamp, optional geolocation), submitter, project/milestone, timestamps.
+3. **Classification:** live site photo frame, digital PDF document, scanned invoice/challan/receipt image, PO, or unknown.
 4. **Quality:** corrupt/blurred/low-resolution image, blank/unreadable PDF, excessive pages/pixels.
 5. **Duplicate checks:** exact hash; optional perceptual similarity candidate. Similarity is not proof of fraud.
 6. **Extraction:** native PDF text where usable, OCR fallback for scanned pages, bounded metadata extraction.

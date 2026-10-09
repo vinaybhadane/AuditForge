@@ -16,7 +16,7 @@ Configure Auth; implement organization/membership/project/audit migrations; veri
 CRUD projects, milestones, versioned acceptance criteria, units/materials/BOQ, baseline snapshots, permission-aware UI. **Gate:** demo project can be configured; invalid units/quantities rejected; history preserved.
 
 ## Phase 4 — Secure evidence ingestion
-Private storage, upload initiation/completion, signature/type/size validation, SHA-256, evidence list/detail, job table/worker skeleton, authorized download. **Gate:** valid evidence stored/traced; malicious files rejected; cross-tenant access denied; failure recovery works.
+Private storage; client camera capture module (`getUserMedia` viewfinder, environment-facing stream, capture trigger, retake/confirm) for milestone site photos with local file upload disabled; dual-mode intake (file upload and live camera scan) for vendor documents (invoices, challans, POs, receipts); ingestion initiation/completion, signature/type/size validation, capture telemetry recording (client timestamp, optional geolocation), SHA-256, evidence list/detail, job table/worker skeleton, authorized download. **Gate:** valid evidence stored/traced; site photos strictly require live camera capture; vendor documents accept file upload or live camera scan; file uploads for site photos rejected; cross-tenant access denied; failure recovery works.
 
 ## Phase 5 — OCR/document review
 PDF text extraction, OCR adapter, invoice/challan schemas, source provenance, arithmetic checks, versioned correction workflow. **Gate:** candidate fields visible; uncertain values flagged; corrections preserve raw extraction; parser failure does not corrupt evidence.
@@ -42,7 +42,7 @@ Run full tests, threat review, accessibility, dependency/secret scans, migration
 ## Recommended first vertical slice
 1. Sign in as test user.
 2. Create/select demo project and milestone.
-3. Upload sample image and challan.
+3. Capture live on-site photo for milestone; upload or live-scan challan document.
 4. Extract and review fields.
 5. Enter a small set of stock movements.
 6. Run deterministic reconciliation.

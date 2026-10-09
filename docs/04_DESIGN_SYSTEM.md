@@ -33,7 +33,9 @@ Use a legible modern sans-serif with system fallback. Initial hierarchy: hero 48
 - Primary action: one dominant action per context. Destructive actions require confirmation.
 - Forms: visible labels, helper text, field errors, summary errors for complex forms, preserve input after recoverable errors.
 - Tables: useful sorting, explicit empty/loading/error states, pagination, accessible row actions; mobile layout must retain access to all important fields.
-- Evidence viewer: evidence ID, file type, uploader/time, checksum status, metadata caveats, milestone link, processing state, AI observations, extracted fields, version history, and authorized download action.
+- Live Capture Viewfinder (site progress photos): camera viewport with environment/rear stream default, real-time capture trigger, retake/confirm dialog, permission failure state, and live capture telemetry indicators (capture timestamp, optional location accuracy badge). Pre-existing image file upload is disabled for site evidence to enforce presence and freshness.
+- Document Intake Interface (invoices, challans, receipts): dual-mode modal/panel featuring "Upload File" (drag-and-drop for PDF/images) and "Camera Scan" (in-app live document capture for physical slips).
+- Evidence viewer: evidence ID, ingestion mode badge (`Live Capture` vs `File Upload`), file type, submitter/capture timestamp, checksum status, metadata caveats, milestone link, processing state, AI observations, extracted fields, version history, and authorized download action.
 - Charts: state period, units, source, interpretation; avoid 3D charts and misleading axes; never fabricate empty-state metrics.
 
 ## Status language

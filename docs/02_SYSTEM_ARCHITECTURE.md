@@ -36,7 +36,7 @@ flowchart LR
 1. Browser inputs, IDs, roles, metadata, and files are untrusted.
 2. Auth proves identity, not project access.
 3. FastAPI verifies token and resolves membership/permission on every protected action.
-4. Storage stays private; issue short-lived authorized URLs or controlled upload instructions.
+4. Storage stays private; issue short-lived authorized URLs or controlled ingestion instructions. Enforce modality policy: site progress photos strictly require authenticated live camera capture sessions (file upload rejected); vendor documents accept both file upload and live camera scanning.
 5. OCR/VLM responses are untrusted and schema-validated.
 6. Database constraints do not replace service authorization.
 7. Clearance is a distinct action with eligibility checks and audit history.
@@ -45,7 +45,7 @@ flowchart LR
 1. Client sends bearer token where required.
 2. API verifies signature, issuer, expiry, and applicable claims.
 3. Authorization dependency resolves active membership and project scope.
-4. Pydantic validates shape; domain service validates business rules.
+4. Pydantic validates shape and ingestion modality; domain service validates business rules.
 5. Service executes a transaction as needed.
 6. Long-running work creates an idempotent job and returns a job ID.
 7. Sensitive mutation creates an audit event.
@@ -54,20 +54,21 @@ flowchart LR
 ## Evidence sequence
 ```mermaid
 sequenceDiagram
- participant U as User
+ participant U as User / Device Camera
  participant API as FastAPI
  participant S as Private Storage
  participant DB as PostgreSQL
  participant W as Worker
  participant P as OCR/VLM
- U->>API: Initiate upload
- API->>API: Authenticate, authorize, validate metadata
+ Note over U,API: Site Photo: live camera capture only.<br/>Documents: file upload OR live camera scan.
+ U->>API: Initiate ingestion (type, modality, capture telemetry)
+ API->>API: Authenticate, authorize, enforce modality policy
  API->>DB: Create pending evidence record
- API-->>U: Evidence ID + upload instructions
- U->>S: Upload file
- U->>API: Complete upload
+ API-->>U: Evidence ID + secure storage instructions
+ U->>S: Store capture frame / document payload
+ U->>API: Complete ingestion
  API->>S: Verify object and metadata/hash
- API->>DB: Mark stored and queue job
+ API->>DB: Mark stored and queue processing job
  W->>DB: Claim job idempotently
  W->>S: Read authorized object
  W->>P: Submit minimum necessary content
