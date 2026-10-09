@@ -3,314 +3,271 @@
 import React, { useState } from 'react';
 import {
   Camera,
+  FileText,
+  Truck,
   FileSpreadsheet,
-  FileCheck,
-  Receipt,
+  BookOpen,
   AlertTriangle,
-  ArrowRight,
-  ShieldCheck,
+  CheckCircle2,
   ExternalLink,
-  CheckCircle,
+  ShieldCheck,
+  Hash,
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 
-interface EvidenceNode {
+interface EvidenceArtifact {
   id: string;
   name: string;
-  type: string;
-  icon: React.ComponentType<{ className?: string }>;
-  tag: string;
-  refCode: string;
+  category: string;
+  identifier: string;
   timestamp: string;
-  sha256: string;
-  summary: string;
-  extractedValues: Record<string, string>;
-  connectionTo: string;
+  hash: string;
+  description: string;
+  keyFields: Record<string, string>;
+  icon: React.ComponentType<{ className?: string }>;
 }
 
-const NODES: EvidenceNode[] = [
-  {
-    id: 'site-photo',
-    name: 'Live Camera Capture',
-    type: 'Hardware Evidence',
-    icon: Camera,
-    tag: 'Live Capture Stream',
-    refCode: 'EVID-SITE-204',
+const EVIDENCE_ARTIFACTS: Record<string, EvidenceArtifact> = {
+  photo: {
+    id: 'photo',
+    name: 'Site Construction Photo',
+    category: 'Hardware Capture',
+    identifier: 'IMG-SITE-2026-842',
     timestamp: '2026-10-09 10:45:12 UTC',
-    sha256: 'a4b89c72e1...892e31',
-    summary:
-      'Live in-app camera capture of Level 2 columns along grid C1-D3. File-picker upload blocked.',
-    extractedValues: {
-      'Capture Modality': 'Live Camera (Rear Facing)',
-      'Site Coordinates': '19.0760° N, 72.8777° E (±12m)',
-      'Linked Milestone': 'M-02 (Structural Columns)',
-      'VLM Observation': 'Cured concrete columns visible; vertical plumb confirmed',
+    hash: 'SHA256: 7f83b1657ff1...a93c4e',
+    description: 'Live camera capture session at Level 2 structural column staging. File-picker gallery upload disabled.',
+    keyFields: {
+      'Capture Modality': 'Live Sensor Only',
+      'Geofence': 'Lat 19.0760° N, Lon 72.8777° E',
+      'Visual Criteria': 'Level 2 Columns Cured & Stripped',
+      'Observation': 'Formwork removed, rebar plumb verified',
     },
-    connectionTo: 'Links visual curing progress directly to milestone criteria M-02',
+    icon: Camera,
   },
-  {
-    id: 'purchase-order',
-    name: 'Purchase Order',
-    type: 'Commercial Document',
+  invoice: {
+    id: 'invoice',
+    name: 'Commercial Tax Invoice',
+    category: 'Vendor Billing',
+    identifier: 'INV-2026-8821',
+    timestamp: '2026-10-07 14:20:00 UTC',
+    hash: 'SHA256: 3c91d8e12b70...4f8190',
+    description: 'Vendor commercial invoice for 50 Metric Tonnes Fe500D structural steel line items.',
+    keyFields: {
+      'Vendor': 'Jindal Steel & Power Ltd',
+      'Billed Qty': '50.00 MT',
+      'Amount': '$48,250.00 USD',
+      'PO Reference': 'PO-BLD-0842',
+    },
+    icon: FileText,
+  },
+  challan: {
+    id: 'challan',
+    name: 'Delivery Challan & Weight Slip',
+    category: 'Logistics Ticket',
+    identifier: 'CH-4091 / SLIP-841',
+    timestamp: '2026-10-08 08:30:15 UTC',
+    hash: 'SHA256: 8a421b00e319...55c812',
+    description: 'Weighbridge gate pass and delivery challan countersigned by site security clerk.',
+    keyFields: {
+      'Vehicle No': 'MH-04-GP-8841',
+      'Gross Weight': '68.20 MT',
+      'Tare Weight': '20.60 MT',
+      'Net Delivered': '47.60 MT (Variance -2.40 MT)',
+    },
+    icon: Truck,
+  },
+  boq: {
+    id: 'boq',
+    name: 'BOQ Schedule Entry',
+    category: 'Contract Baseline',
+    identifier: 'BOQ-ITEM-04.22',
+    timestamp: '2026-08-15 00:00:00 UTC',
+    hash: 'SHA256: 1109bc489e1a...de4931',
+    description: 'Approved tender bill of quantities baseline for foundation reinforcement steel.',
+    keyFields: {
+      'Item Code': 'BOQ-04.22-STL',
+      'Tender Scope': '120.00 MT Total',
+      'Approved Rate': '$965.00 / MT',
+      'Tolerance Window': '±0.50 MT',
+    },
     icon: FileSpreadsheet,
-    tag: 'ERP Contract',
-    refCode: 'PO-2026-881',
-    timestamp: '2026-09-28 09:15:00 UTC',
-    sha256: '992a831e5...c771b0',
-    summary:
-      'Authoritative contract ordering 1,500 bags of OPC 53 Grade Cement for structural columns.',
-    extractedValues: {
-      'Vendor Name': 'ACC Concrete Ltd.',
-      'Material Code': 'MAT-CEM-OPC53',
-      'Ordered Quantity': '1,500 Bags (75.00 Tonnes)',
-      'Agreed Unit Price': '₹380.00 / Bag (excl. GST)',
-    },
-    connectionTo: 'Defines the contractual baseline quantity and agreed commercial pricing',
   },
-  {
-    id: 'delivery-challan',
-    name: 'Delivery Challan',
-    type: 'Logistics Document',
-    icon: Receipt,
-    tag: 'Gate Ingestion',
-    refCode: 'DC-9941',
-    timestamp: '2026-10-04 14:20:33 UTC',
-    sha256: '381ef0921...aa5412',
-    summary:
-      'Transporter physical challan scanned on arrival at security checkpoint.',
-    extractedValues: {
-      'Vehicle Number': 'MH-04-AZ-8819',
-      'Despatched Quantity': '1,480 Bags (74.00 Tonnes)',
-      'Transporter Ref': 'BLR-LOGISTICS-41',
-      'Ingestion Mode': 'Dual Camera Scanner Scan',
+  ledger: {
+    id: 'ledger',
+    name: 'Store Material Ledger',
+    category: 'Inventory Record',
+    identifier: 'LEDGER-WH-0912',
+    timestamp: '2026-10-08 11:10:00 UTC',
+    hash: 'SHA256: e8129a03bc44...9081bb',
+    description: 'Site warehouse inward issue note documenting material moved to active steel-bending yard.',
+    keyFields: {
+      'Inward Qty': '47.60 MT Received',
+      'Store Issue': '35.00 MT Issued to Subcontractor',
+      'Balance On Hand': '12.60 MT Yard Staging',
+      'Custodian': 'Warehouse Supv. J. Mehta',
     },
-    connectionTo: 'Records physical departure quantity from vendor manufacturing plant',
+    icon: BookOpen,
   },
-  {
-    id: 'goods-receipt',
-    name: 'Goods Receipt Note',
-    type: 'Warehouse Ledger',
-    icon: FileCheck,
-    tag: 'Physical Acceptance',
-    refCode: 'GRV-401',
-    timestamp: '2026-10-04 16:10:00 UTC',
-    sha256: 'e891bca77...448102',
-    summary:
-      'Store In-Charge tally inspection verifying physical cement count received in storage.',
-    extractedValues: {
-      'Accepted Quantity': '1,480 Bags',
-      'Rejected / Damaged': '0 Bags',
-      'Storage Location': 'Warehouse Bay 02',
-      'Verified Inspector': 'R. K. Sharma (Store In-Charge)',
+  finding: {
+    id: 'finding',
+    name: 'Audit Discrepancy Signal',
+    category: 'Audit Finding',
+    identifier: 'FINDING-AF-0921',
+    timestamp: '2026-10-09 11:00:00 UTC',
+    hash: 'SHA256: 9b9b0081ac33...7710ad',
+    description: 'Discrepancy Signal: Invoice billed for 50.00 MT, but physical weighbridge confirmed only 47.60 MT received.',
+    keyFields: {
+      'Discrepancy': 'Shortfall of 2.40 MT ($2,316.00 unreceived)',
+      'Signal Class': 'Commercial / Physical Intake Disparity',
+      'Calibrated Confidence': 'High (Deterministic Arithmetic)',
+      'Action Required': 'Auditor Hold on Invoice Payment Voucher',
     },
-    connectionTo: 'Establishes verified inventory addition into project ledger',
-  },
-  {
-    id: 'anomaly-finding',
-    name: 'Calculated Finding',
-    type: 'Audit Discrepancy',
     icon: AlertTriangle,
-    tag: 'Rule AN-004 Signal',
-    refCode: 'ANOM-004-SHORTFALL',
-    timestamp: '2026-10-04 16:15:22 UTC',
-    sha256: 'Derived Deterministic Rule',
-    summary:
-      'Automated reconciliation flags a 20-bag difference between PO commitment and received deliveries.',
-    extractedValues: {
-      'Rule ID': 'REC-002 / AN-004 (Delivery Variance)',
-      'Ordered PO Qty': '1,500 Bags',
-      'Physical Receipt Qty': '1,480 Bags',
-      'Calculated Variance': '-20 Bags (Shortfall ₹7,600)',
-      'Finding Status': 'Open Investigation — Action: Require Credit Note',
-    },
-    connectionTo: 'Prevents invoice over-billing by blocking clearance without vendor credit note',
   },
-];
+};
 
 export function EvidenceSection() {
-  const [activeNodeId, setActiveNodeId] = useState<string>('anomaly-finding');
-  const activeNode = NODES.find((n) => n.id === activeNodeId) || NODES[0];
-  const ActiveIcon = activeNode.icon;
+  const [activeArtifactId, setActiveArtifactId] = useState<string>('finding');
+
+  const activeArtifact = EVIDENCE_ARTIFACTS[activeArtifactId];
 
   return (
     <section
       id="evidence"
-      aria-label="Evidence Intelligence and Traceability"
-      className="py-20 bg-surface-0 border-b border-border relative overflow-hidden"
+      aria-label="Multi-Modal Evidence Intelligence Graph"
+      className="py-24 sm:py-32 bg-[#050505] border-b border-white/10 relative overflow-hidden"
     >
-      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div
+        className="absolute inset-0 bg-blueprint-lines opacity-15 pointer-events-none"
+        aria-hidden="true"
+      />
+
+      <div className="container relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="max-w-3xl mx-auto text-center space-y-4 mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-100 border border-border text-xs font-mono font-medium text-brand-700">
-            <span>MULTI-MODAL EVIDENCE GRAPH</span>
+        <div className="max-w-3xl mb-16 space-y-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono tracking-widest text-[#A3A3A3]">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            <span>EVIDENCE INTELLIGENCE / LINKED GRAPH</span>
           </div>
 
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-brand-950 tracking-tight">
-            Every finding leads back to its evidence.
+          <h2 className="font-serif text-4xl sm:text-5xl lg:text-5.5xl font-normal tracking-tight text-white leading-[1.05]">
+            An audit finding without evidence is{' '}
+            <span className="italic text-emerald-400 font-serif">only a question</span>.
           </h2>
 
-          <p className="text-base sm:text-lg text-text-secondary leading-relaxed">
-            AuditForge weaves disjointed site artifacts into an immutable graph of verifiable facts.
-            Select any node below to trace its cryptographic provenance and ledger impact.
+          <p className="text-base sm:text-lg text-[#888888] leading-relaxed max-w-2xl font-sans">
+            Connect site photographs, commercial invoices, delivery challans, BOQ baselines,
+            and warehouse ledgers to every audit finding.
           </p>
         </div>
 
-        {/* Connected Node Graph Visualizer */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left: Interactive Node Selector Chain */}
-          <div className="lg:col-span-5 space-y-3">
-            <span className="text-xs font-mono uppercase tracking-wider text-text-secondary block font-semibold mb-2">
-              Traceable Supply Chain & Milestone Nodes
-            </span>
+        {/* ---------------- 6-NODE CONNECTED EVIDENCE GRID ---------------- */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-8 font-mono text-xs">
+          {Object.values(EVIDENCE_ARTIFACTS).map((artifact) => {
+            const isSelected = artifact.id === activeArtifactId;
+            const IconComponent = artifact.icon;
+            const isFinding = artifact.id === 'finding';
 
-            {NODES.map((node, index) => {
-              const Icon = node.icon;
-              const isSelected = activeNodeId === node.id;
-              const isFinding = node.id === 'anomaly-finding';
-
-              return (
-                <button
-                  key={node.id}
-                  type="button"
-                  onClick={() => setActiveNodeId(node.id)}
-                  aria-pressed={isSelected}
-                  className={`w-full p-4 rounded-xl border text-left transition-all flex items-center justify-between group ${
-                    isSelected
-                      ? isFinding
-                        ? 'bg-amber-950 text-white border-amber-800 shadow-md ring-2 ring-signal-amber'
-                        : 'bg-brand-950 text-white border-brand-800 shadow-md ring-2 ring-signal-teal'
-                      : 'bg-surface-50 text-text-primary border-border hover:border-brand-700/50 hover:bg-surface-100'
-                  }`}
-                >
-                  <div className="flex items-center gap-3.5">
-                    <div
-                      className={`flex h-10 w-10 items-center justify-center rounded-lg border ${
-                        isSelected
-                          ? isFinding
-                            ? 'bg-amber-900/80 border-amber-700 text-signal-amber'
-                            : 'bg-brand-900 border-brand-700 text-signal-teal'
-                          : isFinding
-                          ? 'bg-amber-50 border-amber-200 text-amber-700'
-                          : 'bg-surface-0 border-border text-brand-700'
-                      }`}
-                    >
-                      <Icon className="w-5 h-5" />
-                    </div>
-
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`font-mono text-xs font-bold ${
-                            isSelected ? 'text-white' : 'text-brand-950'
-                          }`}
-                        >
-                          {node.name}
-                        </span>
-                        <span
-                          className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
-                            isSelected
-                              ? 'bg-black/30 border-white/20 text-slate-300'
-                              : 'bg-surface-0 border-border text-text-secondary'
-                          }`}
-                        >
-                          {node.refCode}
-                        </span>
-                      </div>
-                      <span
-                        className={`text-xs block ${
-                          isSelected ? 'text-slate-300' : 'text-text-secondary'
-                        }`}
-                      >
-                        {node.tag}
-                      </span>
-                    </div>
-                  </div>
-
-                  <ArrowRight
-                    className={`w-4 h-4 transition-transform group-hover:translate-x-1 ${
+            return (
+              <button
+                key={artifact.id}
+                type="button"
+                onClick={() => setActiveArtifactId(artifact.id)}
+                className={`p-3.5 rounded-xl text-left transition-all flex flex-col justify-between min-h-[110px] relative ${
+                  isSelected
+                    ? isFinding
+                      ? 'bg-rose-500/15 border border-rose-500/50 shadow-lg text-white'
+                      : 'bg-emerald-500/15 border border-emerald-500/50 shadow-lg text-white'
+                    : 'bg-white/[0.02] border border-white/10 hover:border-white/20 text-[#888888] hover:text-white'
+                }`}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <IconComponent
+                    className={`w-4 h-4 ${
                       isSelected
                         ? isFinding
-                          ? 'text-signal-amber'
-                          : 'text-signal-teal'
-                        : 'text-text-secondary'
+                          ? 'text-rose-400'
+                          : 'text-emerald-400'
+                        : 'text-[#666666]'
                     }`}
                   />
-                </button>
-              );
-            })}
+                  <span className="text-[10px] text-[#666666]">
+                    {artifact.category}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-xs font-semibold block line-clamp-1">
+                    {artifact.name}
+                  </span>
+                  <span className="text-[10px] text-[#888888] block font-mono">
+                    {artifact.identifier}
+                  </span>
+                </div>
+
+                {isSelected && (
+                  <span
+                    className={`absolute top-2 right-2 w-1.5 h-1.5 rounded-full ${
+                      isFinding ? 'bg-rose-400' : 'bg-emerald-400'
+                    }`}
+                  />
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ---------------- INSPECTION CARD FOR SELECTED EVIDENCE NODE ---------------- */}
+        <div className="p-6 sm:p-10 rounded-2xl bg-white/[0.025] border border-white/10 shadow-2xl relative overflow-hidden font-mono text-xs">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-white/10">
+            <div>
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="px-2.5 py-0.5 rounded bg-white/5 border border-white/10 text-emerald-400 text-[11px]">
+                  {activeArtifact.category.toUpperCase()}
+                </span>
+                <span className="text-[#888888] text-[11px]">
+                  IDENTIFIER: {activeArtifact.identifier}
+                </span>
+              </div>
+              <h3 className="font-serif text-2xl sm:text-3xl font-medium text-white font-sans">
+                {activeArtifact.name}
+              </h3>
+            </div>
+
+            <div className="flex items-center gap-2 text-[11px] text-[#888888]">
+              <Hash className="w-3.5 h-3.5 text-emerald-400" />
+              <span>{activeArtifact.hash}</span>
+            </div>
           </div>
 
-          {/* Right: Active Node Detail & Provenance Inspector */}
-          <div className="lg:col-span-7 p-6 sm:p-7 rounded-2xl bg-surface-50 border border-border shadow-md space-y-6">
-            {/* Header info */}
-            <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-border">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-950 text-signal-amber shadow-sm">
-                  <ActiveIcon className="h-6 w-6" />
+          <p className="text-sm text-[#A3A3A3] font-sans leading-relaxed py-6 border-b border-white/10">
+            {activeArtifact.description}
+          </p>
+
+          {/* Key Extracted Field Values */}
+          <div className="pt-6">
+            <span className="text-[11px] uppercase tracking-wider text-[#888888] block mb-4 font-semibold">
+              Source-Extracted Data Fields & Metadata
+            </span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {Object.entries(activeArtifact.keyFields).map(([label, val]) => (
+                <div
+                  key={label}
+                  className="p-3.5 rounded-xl bg-black/60 border border-white/10 space-y-1"
+                >
+                  <span className="text-[10px] text-[#888888] block uppercase">
+                    {label}
+                  </span>
+                  <span className="text-xs text-white font-bold block">
+                    {val}
+                  </span>
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs font-bold text-brand-700">
-                      {activeNode.refCode}
-                    </span>
-                    <Badge variant="default">{activeNode.type}</Badge>
-                  </div>
-                  <h3 className="text-xl font-bold text-brand-950">
-                    {activeNode.name}
-                  </h3>
-                </div>
-              </div>
-
-              <div className="text-right font-mono text-[11px] text-text-secondary">
-                <span className="block text-text-primary font-semibold">
-                  Timestamp: {activeNode.timestamp}
-                </span>
-                <span className="text-[10px] text-slate-500">
-                  SHA-256: {activeNode.sha256}
-                </span>
-              </div>
+              ))}
             </div>
+          </div>
 
-            {/* Description */}
-            <p className="text-sm text-text-secondary leading-relaxed">
-              {activeNode.summary}
-            </p>
-
-            {/* Structured Extracted Key-Values */}
-            <div className="space-y-2">
-              <span className="text-xs font-mono uppercase tracking-wider text-text-secondary font-semibold block">
-                Extracted Values & Verification Attributes
-              </span>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {Object.entries(activeNode.extractedValues).map(([key, val]) => (
-                  <div
-                    key={key}
-                    className="p-3 rounded-lg bg-surface-0 border border-border/80 font-mono text-xs"
-                  >
-                    <span className="text-[11px] text-text-secondary block">
-                      {key}
-                    </span>
-                    <span className="font-semibold text-text-primary text-xs mt-0.5 block">
-                      {val}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Graph Relationship Connection */}
-            <div className="p-3.5 rounded-xl bg-blue-50/70 border border-blue-200/90 text-xs text-blue-950 flex items-start gap-2.5">
-              <ShieldCheck className="w-4 h-4 text-brand-700 shrink-0 mt-0.5" />
-              <div>
-                <span className="font-mono font-bold text-brand-800 uppercase tracking-wider text-[11px] block">
-                  Provenance Lineage:
-                </span>
-                <span className="text-brand-900 leading-relaxed font-medium">
-                  {activeNode.connectionTo}
-                </span>
-              </div>
-            </div>
+          <div className="mt-8 pt-4 border-t border-white/5 flex items-center justify-between text-[10px] text-[#666666]">
+            <span>*Synthetic demonstration data. Illustrates linked evidence topology.</span>
+            <span>All values retain interactive provenance to source binary files.</span>
           </div>
         </div>
       </div>

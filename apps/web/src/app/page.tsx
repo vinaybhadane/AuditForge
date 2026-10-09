@@ -1,34 +1,38 @@
 import React from 'react';
 import { HeroSection } from '@/components/landing/hero-section';
-import { ProblemSection } from '@/components/landing/problem-section';
+import { FeaturesSection } from '@/components/landing/features-section';
 import { WorkflowSection } from '@/components/landing/workflow-section';
-import { EvidenceSection } from '@/components/landing/evidence-section';
 import { ReconciliationSection } from '@/components/landing/reconciliation-section';
+import { EvidenceSection } from '@/components/landing/evidence-section';
+import { ComparisonSection } from '@/components/landing/comparison-section';
 import { HumanReviewSection } from '@/components/landing/human-review-section';
 import { FinalCta } from '@/components/landing/final-cta';
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col flex-1">
-      {/* 1. Hero Section with Interactive 3D Model */}
+    <div className="flex flex-col flex-1 bg-[#050505] text-[#EBEBEB]">
+      {/* 1. Hero Section with Full-Screen 3D Construction Building Background */}
       <HeroSection />
 
-      {/* 2. The Construction Audit Problem */}
-      <ProblemSection />
+      {/* 2. Four Pillars of AuditForge (Bento Grid) */}
+      <FeaturesSection />
 
-      {/* 3. 7-Stage AuditForge Workflow */}
+      {/* 3. 8-Stage Audit Verification Workflow */}
       <WorkflowSection />
 
-      {/* 4. Multi-Modal Evidence Intelligence Graph */}
-      <EvidenceSection />
-
-      {/* 5. Deterministic Material Reconciliation */}
+      {/* 4. Deterministic Material Reconciliation Live Data Table */}
       <ReconciliationSection />
 
-      {/* 6. Human Review Authority Workbench */}
+      {/* 5. Multi-Modal Evidence Intelligence Connected Graph */}
+      <EvidenceSection />
+
+      {/* 6. Comparison: Traditional Manual vs AuditForge Assisted */}
+      <ComparisonSection />
+
+      {/* 7. Human Review Authority Workbench */}
       <HumanReviewSection />
 
-      {/* 7. Final Enterprise Call to Action */}
+      {/* 8. Cinematic Final Enterprise CTA */}
       <FinalCta />
     </div>
   );

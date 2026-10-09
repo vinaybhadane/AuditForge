@@ -1,159 +1,223 @@
 'use client';
 
-import React from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
 import {
   ArrowRight,
-  Shield,
-  Scale,
-  UserCheck,
   ChevronDown,
-  Camera,
-  Layers,
-  Sparkles,
+  Compass,
+  Play,
+  Pause,
+  VolumeX,
+  Volume2,
+  Video,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ScenePlaceholder } from './scene-placeholder';
-
-// Public '/' is the ONLY place where Three.js / R3F is dynamically loaded.
-// Never import this into dashboard, auth, or shared layouts.
-const DynamicConstructionScene = dynamic(
-  () =>
-    import('./construction-scene').then((mod) => mod.ConstructionScene),
-  {
-    ssr: false,
-    loading: () => <ScenePlaceholder />,
-  }
-);
 
 export function HeroSection() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = useState<boolean>(true);
+  const [isMuted, setIsMuted] = useState<boolean>(true);
+
+  // Guarantee continuous looping autoplay on mount
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.play().catch(() => {
+        // Autoplay policy handled gracefully
+        setIsPlaying(false);
+      });
+    }
+  }, []);
+
+  const togglePlayback = () => {
+    if (!videoRef.current) return;
+    if (isPlaying) {
+      videoRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      videoRef.current.play();
+      setIsPlaying(true);
+    }
+  };
+
+  const toggleMute = () => {
+    if (!videoRef.current) return;
+    videoRef.current.muted = !isMuted;
+    setIsMuted(!isMuted);
+  };
+
   return (
     <section
       id="hero"
-      aria-label="Hero Introduction and Interactive 3D Model"
-      className="relative overflow-hidden bg-gradient-to-b from-surface-0 via-surface-50 to-surface-100 border-b border-border py-12 lg:py-16"
+      aria-label="Hero Introduction and Full-Screen Construction Video Background"
+      className="relative min-h-[100svh] w-full flex flex-col justify-between pt-28 pb-8 overflow-hidden bg-[#050505]"
     >
-      {/* Background Architectural Grid Lines */}
+      {/* ---------------- 1. FULL-SCREEN CONTINUOUS VIDEO BACKGROUND ---------------- */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <video
+          ref={videoRef}
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          className="absolute inset-0 w-full h-full object-cover object-center scale-[1.02] filter brightness-[0.78] contrast-[1.08] transition-transform duration-1000 ease-out"
+        >
+          <source src="/construction.mp4" type="video/mp4" />
+          <source src="/models/construction.mp4" type="video/mp4" />
+          Your browser does not support HTML5 video background.
+        </video>
+
+        {/* Ambient Darkened Film Layer */}
+        <div
+          className="absolute inset-0 bg-[#050505]/35 pointer-events-none"
+          aria-hidden="true"
+        />
+      </div>
+
+      {/* ---------------- 2. DARK CINEMATIC GRADIENT OVERLAYS ---------------- */}
+      {/* Left directional darkening ensures text on left is crystal clear */}
       <div
-        className="absolute inset-0 bg-blueprint-lines pointer-events-none opacity-40"
+        className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-r from-[#050505] via-[#050505]/85 md:via-[#050505]/70 to-[#050505]/25"
+        aria-hidden="true"
+      />
+      {/* Top and bottom vertical blends */}
+      <div
+        className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-b from-[#050505]/90 via-transparent to-[#050505]"
+        aria-hidden="true"
+      />
+      <div
+        className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-t from-[#050505] via-transparent to-[#050505]/40"
         aria-hidden="true"
       />
 
-      <div className="container relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Top Technical Datum Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-6 mb-8 border-b border-border/80 text-xs font-mono text-text-secondary">
-          <div className="flex items-center gap-2">
-            <span className="inline-block w-2 h-2 rounded-full bg-signal-teal animate-pulse" />
-            <span className="font-semibold text-text-primary">
-              PLATFORM STATUS: OPERATIONAL
-            </span>
-            <span className="text-border">|</span>
-            <span>SPEC: RFC-08/11 DETERMINISTIC ENGINE</span>
+      {/* ---------------- 3. SUBTLE BLUEPRINT GRID OVERLAY ---------------- */}
+      <div
+        className="absolute inset-0 z-10 pointer-events-none opacity-20 bg-blueprint-lines"
+        aria-hidden="true"
+      />
+
+      {/* ---------------- 4. HERO CONTENT CONTAINER ---------------- */}
+      <div className="container relative z-20 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 my-auto pointer-events-none">
+        <div className="max-w-2xl py-8">
+          {/* Technical Eyebrow */}
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono tracking-widest text-[#A3A3A3] mb-6 shadow-sm backdrop-blur-md">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span>CONSTRUCTION INTELLIGENCE / PLATFORM 01</span>
           </div>
-          <div className="hidden sm:flex items-center gap-4 text-[11px]">
-            <span>COORDINATES: LAT 19.0760° N, LON 72.8777° E</span>
-            <span className="text-border">|</span>
-            <span>DATUM: WGS84 ELEVATION +14.2M</span>
+
+          {/* Main Headline with Newsreader Serif & Emerald Italic Emphasis */}
+          <h1 className="font-serif text-[clamp(2.75rem,5.5vw,5.25rem)] font-normal tracking-tight text-white leading-[0.94] mb-6 drop-shadow-lg">
+            Every Claim.
+            <br />
+            Verified by{' '}
+            <span className="italic text-emerald-400 font-serif font-normal">
+              Evidence
+            </span>
+            .
+          </h1>
+
+          {/* Supporting Editorial Copy */}
+          <p className="text-base sm:text-lg text-[#A3A3A3] leading-relaxed max-w-xl mb-8 font-sans drop-shadow">
+            Verify construction progress, reconcile material records, and
+            investigate discrepancies through AI-powered analysis and traceable
+            evidence.
+          </p>
+
+          {/* Call to Actions */}
+          <div className="pointer-events-auto flex flex-wrap items-center gap-4 mb-10">
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-xs sm:text-sm font-mono font-medium text-[#050505] bg-emerald-400 hover:bg-emerald-300 hover:shadow-lg hover:shadow-emerald-500/25 transition-all duration-200 group"
+            >
+              <span>Explore AuditForge</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+            </Link>
+
+            <a
+              href="#workflow"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-xs sm:text-sm font-mono text-white bg-white/[0.05] hover:bg-white/[0.09] border border-white/15 hover:border-white/30 backdrop-blur-sm transition-all duration-200"
+            >
+              <span>See How It Works</span>
+              <ChevronDown className="w-4 h-4 text-[#888888]" />
+            </a>
+          </div>
+
+          {/* Evidence-First Trust Strip */}
+          <div className="flex flex-wrap items-center gap-3 text-xs font-mono tracking-widest text-[#888888]">
+            <span className="text-emerald-400/90 font-semibold">EVIDENCE-FIRST</span>
+            <span className="text-white/20">·</span>
+            <span>EXPLAINABLE</span>
+            <span className="text-white/20">·</span>
+            <span>HUMAN-REVIEWED</span>
           </div>
         </div>
+      </div>
 
-        {/* Split Grid: Left Copy & CTAs, Right 3D Model */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
-          {/* Left Column: Copy & Conversion */}
-          <div className="lg:col-span-5 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-100 border border-border text-xs font-mono font-medium text-brand-700">
-              <span className="flex h-1.5 w-1.5 rounded-full bg-signal-amber" />
-              AI-POWERED CONSTRUCTION AUDITING
-            </div>
+      {/* ---------------- 5. FLOATING LIVE TELEMETRY VIDEO CONTROLS ---------------- */}
+      <div className="absolute bottom-20 right-6 sm:right-8 z-20 pointer-events-none hidden sm:flex flex-col items-end gap-2">
+        {/* Live Video Feed Status Chip */}
+        <div className="pointer-events-auto flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#050505]/85 backdrop-blur-md border border-white/10 shadow-2xl text-[11px] font-mono text-slate-300">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+          <Video className="w-3.5 h-3.5 text-emerald-400" />
+          <span className="font-semibold text-white">LIVE SITE TELEMETRY</span>
+          <span className="text-white/20">|</span>
+          <span className="text-[#888888]">CONTINUOUS FEED</span>
+        </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-5.5xl font-black tracking-tight text-brand-950 leading-[1.08]">
-              Every Claim.{' '}
-              <span className="text-brand-700 block">
-                Verified by Evidence.
-              </span>
-            </h1>
+        {/* Playback Controls */}
+        <div className="pointer-events-auto flex items-center gap-1.5 p-1 rounded-xl bg-[#050505]/80 backdrop-blur-md border border-white/10 shadow-xl">
+          <button
+            type="button"
+            onClick={togglePlayback}
+            aria-label={isPlaying ? 'Pause background video' : 'Play background video'}
+            title={isPlaying ? 'Pause Video' : 'Play Video'}
+            className="p-1.5 rounded-lg text-[#A3A3A3] hover:text-white hover:bg-white/10 transition-colors"
+          >
+            {isPlaying ? (
+              <Pause className="w-3.5 h-3.5 text-emerald-400" />
+            ) : (
+              <Play className="w-3.5 h-3.5 text-white" />
+            )}
+          </button>
 
-            <p className="text-base sm:text-lg text-text-secondary leading-relaxed">
-              Verify construction progress, reconcile material records, and uncover
-              discrepancies with evidence-linked AI auditing. Designed for project owners,
-              auditors, and financial institutions.
-            </p>
+          <button
+            type="button"
+            onClick={toggleMute}
+            aria-label={isMuted ? 'Unmute video audio' : 'Mute video audio'}
+            title={isMuted ? 'Unmute' : 'Mute'}
+            className="p-1.5 rounded-lg text-[#A3A3A3] hover:text-white hover:bg-white/10 transition-colors"
+          >
+            {isMuted ? (
+              <VolumeX className="w-3.5 h-3.5 text-[#888888]" />
+            ) : (
+              <Volume2 className="w-3.5 h-3.5 text-emerald-400" />
+            )}
+          </button>
+        </div>
+      </div>
 
-            {/* CTAs */}
-            <div className="flex flex-wrap items-center gap-3 pt-2">
-              <Link href="/dashboard">
-                <Button size="lg" variant="primary" className="gap-2 shadow-lg shadow-brand-950/10">
-                  Explore AuditForge
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-              <a href="#workflow">
-                <Button size="lg" variant="outline" className="gap-2">
-                  See How It Works
-                  <ChevronDown className="h-4 w-4 text-text-secondary" />
-                </Button>
-              </a>
-            </div>
+      {/* ---------------- 6. BOTTOM TECHNICAL STATUS STRIP ---------------- */}
+      <div className="container relative z-20 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 border-t border-white/10 pt-4 flex flex-wrap items-center justify-between gap-4 text-xs font-mono text-[#888888]">
+        {/* Left: Scroll indicator */}
+        <a
+          href="#features"
+          className="pointer-events-auto inline-flex items-center gap-2 text-[#888888] hover:text-white transition-colors group"
+        >
+          <ChevronDown className="w-3.5 h-3.5 text-emerald-400 group-hover:translate-y-0.5 transition-transform" />
+          <span>Scroll to Explore</span>
+        </a>
 
-            {/* Evidence-First Trust Strip */}
-            <div className="pt-6 border-t border-border/80">
-              <p className="text-xs font-mono uppercase tracking-wider text-text-secondary mb-3 font-semibold">
-                Guaranteed Audit Standards
-              </p>
-              <div className="grid grid-cols-3 gap-3 text-xs text-text-secondary">
-                <div className="flex flex-col gap-1 p-2.5 rounded-lg bg-surface-0 border border-border/70 shadow-2xs">
-                  <div className="flex items-center gap-1.5 text-text-primary font-semibold">
-                    <Shield className="w-3.5 h-3.5 text-signal-teal" />
-                    <span>Evidence-First</span>
-                  </div>
-                  <span className="text-[11px] text-text-secondary leading-tight">
-                    Tamper-evident live site camera frames
-                  </span>
-                </div>
+        {/* Center: Coordinates datum */}
+        <div className="hidden sm:flex items-center gap-2 text-[11px] text-[#666666]">
+          <Compass className="w-3 h-3 text-emerald-400" />
+          <span>DATUM: LAT 19.0760° N, LON 72.8777° E</span>
+          <span className="text-white/20">|</span>
+          <span>ELEVATION +14.2M</span>
+        </div>
 
-                <div className="flex flex-col gap-1 p-2.5 rounded-lg bg-surface-0 border border-border/70 shadow-2xs">
-                  <div className="flex items-center gap-1.5 text-text-primary font-semibold">
-                    <Scale className="w-3.5 h-3.5 text-signal-amber" />
-                    <span>Explainable</span>
-                  </div>
-                  <span className="text-[11px] text-text-secondary leading-tight">
-                    Deterministic reproducible ledger math
-                  </span>
-                </div>
-
-                <div className="flex flex-col gap-1 p-2.5 rounded-lg bg-surface-0 border border-border/70 shadow-2xs">
-                  <div className="flex items-center gap-1.5 text-text-primary font-semibold">
-                    <UserCheck className="w-3.5 h-3.5 text-brand-600" />
-                    <span>Human Review</span>
-                  </div>
-                  <span className="text-[11px] text-text-secondary leading-tight">
-                    Authoritative signoff gates certificates
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: Interactive 3D Model Stage */}
-          <div className="lg:col-span-7 w-full">
-            <div className="relative">
-              {/* Subtle architectural elevation dimension tag */}
-              <div className="absolute -top-3 left-4 z-20 px-2 py-0.5 rounded bg-brand-950 text-signal-amber font-mono text-[10px] font-semibold tracking-wider uppercase border border-brand-800 shadow-sm">
-                STRUCTURAL ELEVATION // 3D MODEL VIEWER
-              </div>
-
-              {/* Dynamic 3D Scene */}
-              <DynamicConstructionScene />
-
-              {/* Sub-scene caption */}
-              <div className="mt-3 flex items-center justify-between text-xs text-text-secondary font-mono px-1">
-                <span>* Drag to orbit building • Scroll to zoom • Select levels to inspect</span>
-                <span className="hidden sm:inline">Demo Model: Northstar Block</span>
-              </div>
-            </div>
-          </div>
+        {/* Right: Technical label */}
+        <div className="text-[11px] tracking-wider text-[#888888]">
+          SITE INTELLIGENCE / EVIDENCE-LED AUDITING
         </div>
       </div>
     </section>
