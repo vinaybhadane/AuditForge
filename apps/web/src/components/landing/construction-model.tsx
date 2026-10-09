@@ -205,6 +205,3 @@ export function ConstructionModel({
     </group>
   );
 }
-
-// Preload the GLTF asset
-useGLTF.preload(MODEL_PATH);

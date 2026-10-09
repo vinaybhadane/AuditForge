@@ -56,5 +56,6 @@ Thumbs.db
 !.vscode/extensions.json
 !.vscode/settings.json
 
-# Root raw downloads
-/construction_site_asset_pack.glb
+# Large 3D binary assets
+*.glb
+*.gltf
