@@ -4,227 +4,239 @@ import React, { useState } from 'react';
 import {
   UserCheck,
   CheckCircle2,
-  AlertCircle,
-  FileCheck2,
+  AlertTriangle,
+  FileQuestion,
+  ShieldCheck,
   Lock,
   ArrowRight,
-  Shield,
-  HelpCircle,
-  XCircle,
+  Eye,
+  History,
+  FileText,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 
 export function HumanReviewSection() {
-  const [selectedDecision, setSelectedDecision] = useState<
-    'hold' | 'evidence' | 'approve' | 'reject'
-  >('hold');
+  const [selectedAction, setSelectedAction] = useState<
+    'approve' | 'reject' | 'request'
+  >('request');
+  const [reviewerNotes, setReviewerNotes] = useState<string>(
+    'Reconcile weighbridge slip #841 with subcontractor batch tally before approving clearance certificate.'
+  );
+  const [actionSubmitted, setActionSubmitted] = useState<boolean>(false);
 
   return (
     <section
       id="review"
-      aria-label="Human Review and Clearance Authority"
-      className="py-20 bg-surface-0 border-b border-border relative overflow-hidden"
+      aria-label="Human Review Authority and Decision Governance"
+      className="py-24 sm:py-32 bg-[#050505] border-b border-white/10 relative overflow-hidden"
     >
-      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div
+        className="absolute inset-0 bg-blueprint-lines opacity-15 pointer-events-none"
+        aria-hidden="true"
+      />
+
+      <div className="container relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="max-w-3xl mx-auto text-center space-y-4 mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-100 border border-border text-xs font-mono font-medium text-brand-700">
-            <span>GOVERNANCE & ACCOUNTABILITY</span>
+        <div className="max-w-3xl mb-16 space-y-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono tracking-widest text-[#A3A3A3]">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            <span>TRUST THROUGH TRANSPARENCY</span>
           </div>
 
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-brand-950 tracking-tight">
-            AI surfaces the signal. Auditors make the decision.
+          <h2 className="font-serif text-4xl sm:text-5xl lg:text-5.5xl font-normal tracking-tight text-white leading-[1.05]">
+            AI surfaces the signal.{' '}
+            <span className="italic text-emerald-400 font-serif">Auditors make the decision</span>.
           </h2>
 
-          <p className="text-base sm:text-lg text-text-secondary leading-relaxed">
-            AuditForge is decision support—not an autonomous judge or regulatory certifier. No model
-            prediction can directly authorize payments, mutate ledger baselines, or release clearance
-            certificates.
+          <p className="text-base sm:text-lg text-[#888888] leading-relaxed max-w-2xl font-sans">
+            Keep every important conclusion explainable, reviewable, and connected to the records
+            that support it. AI confidence alone cannot clear a milestone or accuse a vendor.
           </p>
         </div>
 
-        {/* Auditor Workbench Mockup Container */}
-        <div className="max-w-4xl mx-auto rounded-2xl bg-surface-50 border border-border shadow-xl overflow-hidden">
-          {/* Workbench Top Bar */}
-          <div className="p-4 sm:px-6 bg-brand-950 text-white flex flex-wrap items-center justify-between gap-4">
+        {/* ---------------- AUDITOR BENCHMARK WORKBENCH INTERFACE ---------------- */}
+        <div className="max-w-5xl mx-auto rounded-2xl bg-white/[0.025] border border-white/10 shadow-2xl overflow-hidden font-mono text-xs">
+          {/* Top Workbench Status Bar */}
+          <div className="p-4 sm:px-6 bg-black/80 border-b border-white/10 flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-800 text-signal-amber border border-brand-700">
-                <UserCheck className="w-5 h-5" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                <UserCheck className="w-4 h-4" />
               </div>
               <div>
-                <span className="font-mono text-[11px] text-slate-400 block uppercase tracking-wider">
-                  Auditor Clearance Gate // Milestone Review
+                <span className="text-[10px] text-[#888888] block uppercase tracking-wider">
+                  AUTHORITATIVE REVIEW GATE // MILESTONE CLEARANCE
                 </span>
-                <h3 className="text-sm sm:text-base font-bold text-white">
-                  M-02: Level 2 Structural Columns & Core
-                </h3>
+                <span className="text-xs font-semibold text-white">
+                  M-02: Structural Columns & Reinforced Core (CRIT-COL-204)
+                </span>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 text-xs font-mono text-slate-300">
-              <span className="px-2.5 py-1 rounded bg-brand-900 border border-brand-700">
-                Reviewer: S. Jenkins (Lead Auditor)
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-1 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[11px]">
+                SIGNAL: REVIEW REQUIRED
               </span>
+              <span className="text-[#888888] text-[11px]">FINDING-AF-0921</span>
             </div>
           </div>
 
-          <div className="p-6 sm:p-8 space-y-8">
-            {/* Eligibility Prerequisites Checklist */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-mono font-bold uppercase tracking-wider text-brand-950">
-                  Documented Eligibility Gates (RFC-FR-014)
+          {/* Workbench Body Grid */}
+          <div className="p-6 sm:p-8 space-y-6">
+            {/* Row 1: Evidence Links & Extracted Values */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Box A: Relevant Evidence References */}
+              <div className="p-4 rounded-xl bg-black/60 border border-white/10 space-y-3">
+                <span className="text-[11px] text-emerald-400 block uppercase tracking-wider font-semibold">
+                  Relevant Supporting Records
                 </span>
-                <span className="text-xs font-mono text-danger-700 font-semibold">
-                  1 Blocker Identified
-                </span>
+                <div className="space-y-2 text-[11px]">
+                  <div className="flex items-center justify-between p-2 rounded bg-white/[0.02] border border-white/5">
+                    <span className="text-white">Live Site Photo (IMG-842)</span>
+                    <span className="text-emerald-400">SHA-256 MATCH</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 rounded bg-white/[0.02] border border-white/5">
+                    <span className="text-white">Vendor Invoice (INV-8821)</span>
+                    <span className="text-slate-400">50.00 MT BILLED</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 rounded bg-white/[0.02] border border-white/5">
+                    <span className="text-white">Delivery Challan (CH-4091)</span>
+                    <span className="text-amber-400">47.60 MT NET</span>
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-2 font-mono text-xs">
-                {/* Gate 1 */}
-                <div className="p-3 rounded-xl bg-surface-0 border border-border flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-signal-teal shrink-0" />
-                    <span className="text-text-primary">
-                      Gate 01: Live Camera Site Capture (6/6 viewpoints verified on site)
-                    </span>
+              {/* Box B: AI Model Observation & Calibrated Uncertainty */}
+              <div className="p-4 rounded-xl bg-black/60 border border-white/10 space-y-3">
+                <span className="text-[11px] text-amber-400 block uppercase tracking-wider font-semibold">
+                  AI Model Observation & Confidence
+                </span>
+                <div className="space-y-2 text-xs font-sans text-[#A3A3A3] leading-relaxed">
+                  <p>
+                    <strong className="text-white font-mono text-[11px]">Vision Model: </strong>
+                    Columns stripped and cured along grid C1-D3. Visual completion aligned with
+                    criteria. Vertical plumb lines within tolerance.
+                  </p>
+                  <div className="pt-2 border-t border-white/10 flex items-center justify-between font-mono text-[11px]">
+                    <span className="text-[#888888]">Calibrated Confidence: 94.2%</span>
+                    <span className="text-amber-400">*Candidate Observation Only</span>
                   </div>
-                  <Badge variant="verified">Passed</Badge>
-                </div>
-
-                {/* Gate 2 */}
-                <div className="p-3 rounded-xl bg-surface-0 border border-border flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-signal-teal shrink-0" />
-                    <span className="text-text-primary">
-                      Gate 02: Cryptographic Payload Integrity (SHA-256 match verified)
-                    </span>
-                  </div>
-                  <Badge variant="verified">Passed</Badge>
-                </div>
-
-                {/* Gate 3 */}
-                <div className="p-3 rounded-xl bg-surface-0 border border-border flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-signal-teal shrink-0" />
-                    <span className="text-text-primary">
-                      Gate 03: Concrete Cube Test Strength (28-day curing certificate attached)
-                    </span>
-                  </div>
-                  <Badge variant="verified">Passed</Badge>
-                </div>
-
-                {/* Gate 4 (Blocker) */}
-                <div className="p-3 rounded-xl bg-red-50/70 border border-red-200 flex items-center justify-between gap-3 text-danger-700">
-                  <div className="flex items-center gap-2.5 font-semibold">
-                    <AlertCircle className="w-4 h-4 text-danger-700 shrink-0" />
-                    <span>
-                      Gate 04: Commercial Reconciliation (Cement Shortfall -20 Bags Credit Note Pending)
-                    </span>
-                  </div>
-                  <span className="px-2 py-0.5 rounded bg-red-100 border border-red-300 font-bold text-[11px]">
-                    Blocker
-                  </span>
                 </div>
               </div>
             </div>
 
-            {/* Decision Controls */}
-            <div className="space-y-3 pt-4 border-t border-border">
-              <span className="text-xs font-mono font-bold uppercase tracking-wider text-brand-950 block">
-                Authorized Review Actions
+            {/* Row 2: Deterministic Reconciliation Math */}
+            <div className="p-4 rounded-xl bg-black/60 border border-white/10 space-y-2">
+              <span className="text-[11px] text-[#A3A3A3] block uppercase tracking-wider font-semibold">
+                Deterministic Ledger Discrepancy Calculation
+              </span>
+              <div className="p-3 rounded-lg bg-white/[0.02] border border-white/10 flex flex-wrap items-center justify-between gap-4 text-xs font-mono">
+                <div>
+                  <span className="text-[#888888] block text-[10px]">COMMERCIAL CLAIM</span>
+                  <span className="text-white font-bold">50.00 MT ($48,250.00)</span>
+                </div>
+                <div>
+                  <span className="text-[#888888] block text-[10px]">PHYSICAL INTAKE</span>
+                  <span className="text-white font-bold">47.60 MT ($45,934.00)</span>
+                </div>
+                <div>
+                  <span className="text-[#888888] block text-[10px]">VARIANCE DISCREPANCY</span>
+                  <span className="text-rose-400 font-bold">-2.40 MT ($2,316.00 unreceived)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Row 3: Auditor Decision Form & Notes */}
+            <div className="p-5 rounded-xl bg-black/60 border border-white/10 space-y-4">
+              <span className="text-[11px] text-white block uppercase tracking-wider font-semibold">
+                Auditor Determination & Reviewer Notes
               </span>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                {/* Hold Action */}
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center gap-3">
                 <button
                   type="button"
-                  onClick={() => setSelectedDecision('hold')}
-                  className={`p-3 rounded-xl border text-left font-mono text-xs transition-all ${
-                    selectedDecision === 'hold'
-                      ? 'bg-amber-950 text-white border-amber-800 shadow-md ring-2 ring-signal-amber'
-                      : 'bg-surface-0 text-text-primary border-border hover:border-brand-700/50'
+                  onClick={() => {
+                    setSelectedAction('request');
+                    setActionSubmitted(false);
+                  }}
+                  className={`px-4 py-2 rounded-lg text-xs font-mono transition-all ${
+                    selectedAction === 'request'
+                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/50 font-bold'
+                      : 'bg-white/[0.04] text-[#888888] hover:text-white border border-white/10'
                   }`}
                 >
-                  <span className="font-bold block text-sm mb-1">
-                    Hold Claim
-                  </span>
-                  <span className="text-[11px] text-slate-300 block">
-                    Wait for credit note receipt
-                  </span>
+                  Request Supporting Evidence
                 </button>
-
-                {/* Request Evidence Action */}
                 <button
                   type="button"
-                  onClick={() => setSelectedDecision('evidence')}
-                  className={`p-3 rounded-xl border text-left font-mono text-xs transition-all ${
-                    selectedDecision === 'evidence'
-                      ? 'bg-brand-950 text-white border-brand-800 shadow-md ring-2 ring-signal-teal'
-                      : 'bg-surface-0 text-text-primary border-border hover:border-brand-700/50'
+                  onClick={() => {
+                    setSelectedAction('reject');
+                    setActionSubmitted(false);
+                  }}
+                  className={`px-4 py-2 rounded-lg text-xs font-mono transition-all ${
+                    selectedAction === 'reject'
+                      ? 'bg-rose-500/20 text-rose-300 border border-rose-500/50 font-bold'
+                      : 'bg-white/[0.04] text-[#888888] hover:text-white border border-white/10'
                   }`}
                 >
-                  <span className="font-bold block text-sm mb-1">
-                    Request Evidence
-                  </span>
-                  <span className="text-[11px] text-text-secondary block">
-                    Ask for additional inspection
-                  </span>
+                  Issue Discrepancy Notice
                 </button>
-
-                {/* Reject Action */}
                 <button
                   type="button"
-                  onClick={() => setSelectedDecision('reject')}
-                  className={`p-3 rounded-xl border text-left font-mono text-xs transition-all ${
-                    selectedDecision === 'reject'
-                      ? 'bg-red-950 text-white border-red-800 shadow-md ring-2 ring-danger-700'
-                      : 'bg-surface-0 text-text-primary border-border hover:border-brand-700/50'
+                  onClick={() => {
+                    setSelectedAction('approve');
+                    setActionSubmitted(false);
+                  }}
+                  className={`px-4 py-2 rounded-lg text-xs font-mono transition-all ${
+                    selectedAction === 'approve'
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 font-bold'
+                      : 'bg-white/[0.04] text-[#888888] hover:text-white border border-white/10'
                   }`}
                 >
-                  <span className="font-bold block text-sm mb-1">
-                    Reject Milestone
-                  </span>
-                  <span className="text-[11px] text-text-secondary block">
-                    Record formal rejection notice
-                  </span>
+                  Approve Clearance Certificate
                 </button>
-
-                {/* Issue Certificate Action (Blocked) */}
-                <div
-                  title="Issuance blocked by unresolved commercial discrepancy"
-                  className="p-3 rounded-xl border border-dashed border-slate-300 bg-surface-100/60 text-slate-400 font-mono text-xs cursor-not-allowed flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="flex items-center gap-1 font-bold text-sm mb-1">
-                      <Lock className="w-3.5 h-3.5" />
-                      Issue Certificate
-                    </div>
-                    <span className="text-[10px] leading-tight block">
-                      Clearance Blocked by Gate 04
-                    </span>
-                  </div>
-                </div>
               </div>
+
+              {/* Notes Input */}
+              <div>
+                <label className="text-[10px] text-[#888888] block uppercase mb-1">
+                  Auditor Audit Trail Commentary
+                </label>
+                <textarea
+                  value={reviewerNotes}
+                  onChange={(e) => setReviewerNotes(e.target.value)}
+                  rows={2}
+                  className="w-full p-3 rounded-lg bg-white/[0.03] border border-white/10 text-white font-sans text-xs focus:outline-none focus:border-emerald-500/50 resize-none"
+                />
+              </div>
+
+              {/* Submit Action */}
+              <div className="flex items-center justify-between pt-2">
+                <span className="text-[10px] text-[#666666]">
+                  Signed by: Senior Technical Auditor #AUD-409 · RBAC Gate Verified
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setActionSubmitted(true)}
+                  className="px-5 py-2 rounded-lg bg-emerald-400 text-[#050505] hover:bg-emerald-300 font-bold transition-all"
+                >
+                  {actionSubmitted ? 'Decision Recorded ✓' : 'Execute Auditor Decision'}
+                </button>
+              </div>
+
+              {actionSubmitted && (
+                <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-sans">
+                  Decision successfully committed to audit ledger. Nonce: 0x99f821b · Timestamp: {new Date().toISOString()}
+                </div>
+              )}
             </div>
 
-            {/* Audit Event Signature & Snapshot */}
-            <div className="p-4 rounded-xl bg-surface-100 border border-border font-mono text-xs flex flex-wrap items-center justify-between gap-4 text-text-secondary">
-              <div className="flex items-center gap-2">
-                <Shield className="w-4 h-4 text-brand-700" />
-                <span>
-                  Audit Event ID: <strong className="text-text-primary">EVT-DEC-9912</strong>
-                </span>
-              </div>
-              <div>
-                <span>Timestamp: </span>
-                <span className="text-text-primary font-semibold">2026-10-09 14:30:15 UTC</span>
-              </div>
-              <div>
-                <span>Ledger Hash: </span>
-                <span className="text-brand-700">sha256:7f42...10da</span>
-              </div>
+            {/* Decision History Trail */}
+            <div className="pt-2 text-[11px] text-[#666666] flex items-center justify-between border-t border-white/10">
+              <span className="flex items-center gap-1.5">
+                <History className="w-3.5 h-3.5" />
+                Audit Trail Nonce: 0x8a92...e109
+              </span>
+              <span>*Illustrative demonstration workbench interface.</span>
             </div>
           </div>
         </div>

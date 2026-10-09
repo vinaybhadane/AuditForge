@@ -9,6 +9,22 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        dark: {
+          bg: '#050505',
+          surface: 'rgba(255, 255, 255, 0.035)',
+          'surface-hover': 'rgba(255, 255, 255, 0.06)',
+          border: 'rgba(255, 255, 255, 0.10)',
+          'border-subtle': 'rgba(255, 255, 255, 0.06)',
+          text: '#EBEBEB',
+          secondary: '#A3A3A3',
+          muted: '#888888',
+        },
+        emerald: {
+          DEFAULT: '#10B981',
+          400: '#34D399',
+          500: '#10B981',
+          600: '#059669',
+        },
         brand: {
           950: '#101B2D',
           800: '#1C3555',
@@ -16,17 +32,9 @@ const config: Config = {
           600: '#2D6FA3',
         },
         signal: {
-          amber: '#E9A23B',
-          teal: '#1C8C83',
-        },
-        danger: {
-          700: '#B42318',
-        },
-        warning: {
-          700: '#9A6700',
-        },
-        success: {
-          700: '#18794E',
+          amber: '#F59E0B',
+          teal: '#10B981',
+          red: '#F87171',
         },
         surface: {
           0: '#FFFFFF',
@@ -42,26 +50,30 @@ const config: Config = {
         },
       },
       fontFamily: {
+        serif: ['Newsreader', 'Georgia', 'serif'],
         sans: [
           'Inter',
           '-apple-system',
           'BlinkMacSystemFont',
           'Segoe UI',
           'Roboto',
-          'Helvetica Neue',
-          'Arial',
           'sans-serif',
         ],
         mono: [
+          'Space Grotesk',
           'ui-monospace',
           'SFMono-Regular',
           'Menlo',
-          'Monaco',
-          'Consolas',
-          'Liberation Mono',
-          'Courier New',
           'monospace',
         ],
+        grotesk: [
+          'Space Grotesk',
+          '-apple-system',
+          'sans-serif',
+        ],
+      },
+      transitionTimingFunction: {
+        architectural: 'cubic-bezier(0.16, 1, 0.3, 1)',
       },
     },
   },

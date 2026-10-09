@@ -2,258 +2,326 @@
 
 import React, { useState } from 'react';
 import {
+  FolderGit2,
   Camera,
   Hash,
-  FileText,
   Eye,
+  FileText,
   Calculator,
   AlertTriangle,
   Award,
-  ChevronRight,
-  ShieldCheck,
   CheckCircle2,
+  ArrowRight,
+  ShieldCheck,
+  ChevronRight,
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 
-interface StepDetail {
-  number: string;
+interface WorkflowStage {
+  id: string;
+  stepNumber: string;
   title: string;
   shortDesc: string;
-  icon: React.ComponentType<{ className?: string }>;
-  tag: string;
-  input: string;
-  process: string;
-  output: string;
+  category: 'FACT' | 'CALC' | 'AI_OBSERVATION' | 'DECISION';
+  categoryLabel: string;
+  inputs: string;
+  deterministicProcess: string;
+  auditableOutput: string;
   integrityRule: string;
+  icon: React.ComponentType<{ className?: string }>;
 }
 
-const STEPS: StepDetail[] = [
+const WORKFLOW_STAGES: WorkflowStage[] = [
   {
-    number: '01',
-    title: 'Collect Evidence',
-    shortDesc: 'Live camera capture on site; dual upload/scan for documents',
+    id: 'stage-1',
+    stepNumber: '01',
+    title: 'Project Setup',
+    shortDesc: 'Geofence datum, milestones, BOQ schedules, and auditor RBAC roles',
+    category: 'FACT',
+    categoryLabel: 'Authoritative Baseline',
+    inputs: 'Project contract, approved BOQ schedule, site boundary coordinates',
+    deterministicProcess: 'Initializes tenant isolation, milestone criteria specs, and auditor cryptographic keys',
+    auditableOutput: 'Immutable project baseline & acceptance criteria database records',
+    integrityRule: 'Baseline parameters cannot be modified without audit trail logging.',
+    icon: FolderGit2,
+  },
+  {
+    id: 'stage-2',
+    stepNumber: '02',
+    title: 'Evidence Collection',
+    shortDesc: 'Live camera capture on site; dual upload/scan for vendor documents',
+    category: 'FACT',
+    categoryLabel: 'Verified Input',
+    inputs: 'Live camera video/photo streams from site; digital invoices and weight challans',
+    deterministicProcess: 'Enforces live camera session for site progress (pre-existing image uploads disabled to prove presence)',
+    auditableOutput: 'Encrypted object in private storage + device capture telemetry',
+    integrityRule: 'Physical presence rule: Gallery file uploads rejected for milestone photos.',
     icon: Camera,
-    tag: 'Hardware Ingestion',
-    input: 'Live device camera stream (site photos) or PDF/image files (vendor invoices/challans)',
-    process: 'Enforces live camera capture for site progress (pre-existing image uploads disabled to prove presence)',
-    output: 'Encrypted object in private storage + capture metadata (timestamp, device, location)',
-    integrityRule: 'Physical presence rule: Gallery uploads rejected for milestone photos.',
   },
   {
-    number: '02',
-    title: 'Integrity & Provenance',
-    shortDesc: 'Cryptographic hashing and tamper-evident registration',
+    id: 'stage-3',
+    stepNumber: '03',
+    title: 'Integrity Checks',
+    shortDesc: 'Cryptographic SHA-256 baseline hashing and MIME inspection',
+    category: 'FACT',
+    categoryLabel: 'Tamper Verification',
+    inputs: 'Raw binary stream and client metadata payload',
+    deterministicProcess: 'Generates immutable SHA-256 hash, validates MIME magic bytes, verifies EXIF consistency',
+    auditableOutput: 'Tamper-evident ledger entry with unique UUID and hash fingerprint',
+    integrityRule: 'SHA-256 detects tampering relative to known hash; does not establish original authenticity.',
     icon: Hash,
-    tag: 'Cryptographic Seal',
-    input: 'Binary file payload and client telemetry payload',
-    process: 'Computes immutable SHA-256 checksum; assigns unique UUID; verifies capture time within allowed window',
-    output: 'Immutable evidence asset row in PostgreSQL with verified hash and tenant ownership',
-    integrityRule: 'SHA-256 detects tampering relative to known hash; does not replace human review.',
   },
   {
-    number: '03',
-    title: 'Document Extraction',
-    shortDesc: 'High-precision OCR and candidate field normalization',
-    icon: FileText,
-    tag: 'OCR Engine',
-    input: 'Invoices, delivery challans, goods receipts, and purchase orders',
-    process: 'Extracts line items, vendor names, quantities, unit prices, tax amounts, and source coordinates',
-    output: 'Structured Pydantic candidate records with page spans and confidence intervals',
-    integrityRule: 'Uncertain financial extractions require human confirmation before ledger calculation.',
-  },
-  {
-    number: '04',
-    title: 'Visual Assessment',
-    shortDesc: 'Criterion-grounded VLM observations against milestones',
+    id: 'stage-4',
+    stepNumber: '04',
+    title: 'AI-Assisted Verification',
+    shortDesc: 'Vision model assessment against defined milestone criteria',
+    category: 'AI_OBSERVATION',
+    categoryLabel: 'AI Observation (Candidate)',
+    inputs: 'Live camera capture frames + milestone acceptance criteria specs',
+    deterministicProcess: 'VLM analyzes completion percentage, structural rebar ties, and shuttering status',
+    auditableOutput: 'Structured candidate observation with calibrated confidence scores (never an autonomous pass)',
+    integrityRule: 'AI confidence is a review signal—raw model outputs cannot issue clearance certificates.',
     icon: Eye,
-    tag: 'VLM Adapter',
-    input: 'Live-captured site photograph + versioned acceptance criteria (e.g. column curing, reinforcement)',
-    process: 'Vision-Language Model compares visible features to criteria; flags visible vs obscured elements',
-    output: 'Candidate visual observations with explicit uncertainty boundaries',
-    integrityRule: 'One photo cannot prove internal structural quality; VLM output is review input only.',
   },
   {
-    number: '05',
+    id: 'stage-5',
+    stepNumber: '05',
+    title: 'Document Extraction',
+    shortDesc: 'OCR invoice/challan field extraction with source bounding boxes',
+    category: 'FACT',
+    categoryLabel: 'Extracted Source Fact',
+    inputs: 'PDF invoices, goods receipt notes, delivery weight tickets',
+    deterministicProcess: 'Extracts line items, vendor names, quantities, unit prices, tax amounts, and source pixel coordinates',
+    auditableOutput: 'Normalized invoice line item entities linked to source document bounding boxes',
+    integrityRule: 'Every extracted number preserves an interactive bounding box link to the original document.',
+    icon: FileText,
+  },
+  {
+    id: 'stage-6',
+    stepNumber: '06',
     title: 'Material Reconciliation',
-    shortDesc: 'Deterministic ledger balance across the supply chain',
+    shortDesc: 'Deterministic decimal ledger comparing PO, challan, and issues',
+    category: 'CALC',
+    categoryLabel: 'Calculated Variance',
+    inputs: 'BOQ baseline, PO line items, delivery challans, store issue notes, recorded consumption',
+    deterministicProcess: 'Calculates: Variance = Delivered - (Issued + Retained) using high-precision Decimal arithmetic',
+    auditableOutput: 'Versioned material reconciliation run with reproducible variance numbers',
+    integrityRule: 'Deterministic math: AI does not override arithmetic. Delivered ≠ Consumed.',
     icon: Calculator,
-    tag: 'Deterministic Math',
-    input: 'BOQ baseline version, PO lines, challans, store receipts, and issue vouchers',
-    process: 'Executes versioned Decimal formulas: Closing Stock = Opening + Receipts - Issues + Adjustments',
-    output: 'Reproducible reconciliation lines with calculated delta, unit conversions, and tolerances',
-    integrityRule: 'Ordered ≠ Delivered ≠ Received ≠ Issued ≠ Consumed. Never equate ledger states.',
   },
   {
-    number: '06',
-    title: 'Anomaly Detection',
-    shortDesc: 'Rule-based detectors flagging discrepancies and variances',
+    id: 'stage-7',
+    stepNumber: '07',
+    title: 'Anomaly Analysis',
+    shortDesc: 'Calibrated review signals flagging variance without presuming fraud',
+    category: 'AI_OBSERVATION',
+    categoryLabel: 'Review Signal',
+    inputs: 'Calculated material variances, visual observation discrepancies, timeline delays',
+    deterministicProcess: 'Correlates multi-modal signals to flag statistical anomalies and missing documentation',
+    auditableOutput: 'Ranked discrepancy signals and evidence inspection packages for human auditors',
+    integrityRule: 'An anomaly is a review signal—it is not proof of fraud or intentional wrongdoing.',
     icon: AlertTriangle,
-    tag: 'Rule Engine',
-    input: 'Material deltas, duplicate hashes, PO balances, and capture telemetry',
-    process: 'Evaluates rules AN-001 to AN-011 (e.g. challan vs receipt variance, PO over-billing, GPS skew)',
-    output: 'Categorized anomaly findings with severity ratings and explainable calculation traces',
-    integrityRule: 'An anomaly is a review signal, not proof of fraud or intentional wrongdoing.',
   },
   {
-    number: '07',
-    title: 'Human Review & Clearance',
-    shortDesc: 'Eligibility gate checks and authorized certificate issuance',
+    id: 'stage-8',
+    stepNumber: '08',
+    title: 'Human Auditor Decision',
+    shortDesc: 'Authorized professional signoff gating milestone clearance certificates',
+    category: 'DECISION',
+    categoryLabel: 'Human Authority Gate',
+    inputs: 'Audit summary, anomaly signals, supporting evidence references, auditor notes',
+    deterministicProcess: 'Authorized human auditor evaluates signals and explicitly executes Approve, Reject, or Request Info',
+    auditableOutput: 'Cryptographically signed Milestone Clearance Certificate or Discrepancy Notice',
+    integrityRule: 'Non-negotiable: Certificates require documented eligibility checks and authorized human signoff.',
     icon: Award,
-    tag: 'Human Gate',
-    input: 'Auditor review decision, referenced finding resolutions, criteria snapshot',
-    process: 'Verifies eligibility blockers (unresolved critical discrepancies block clearance)',
-    output: 'Immutable PDF Clearance Certificate with cryptographic signature and audit trail',
-    integrityRule: 'Clearance strictly requires authorized human decision. AI cannot issue certificates.',
   },
 ];
 
 export function WorkflowSection() {
-  const [activeStepIndex, setActiveStepIndex] = useState(0);
-  const current = STEPS[activeStepIndex];
-  const CurrentIcon = current.icon;
+  const [activeStageId, setActiveStageId] = useState<string>('stage-4');
+
+  const activeStage =
+    WORKFLOW_STAGES.find((s) => s.id === activeStageId) || WORKFLOW_STAGES[0];
 
   return (
     <section
       id="workflow"
-      aria-label="The AuditForge Workflow"
-      className="py-20 bg-surface-50 border-b border-border relative overflow-hidden"
+      aria-label="AuditForge Verification Pipeline Workflow"
+      className="py-24 sm:py-32 bg-[#050505] border-b border-white/10 relative overflow-hidden"
     >
-      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      {/* Background Blueprint Grid */}
+      <div
+        className="absolute inset-0 bg-blueprint-lines opacity-15 pointer-events-none"
+        aria-hidden="true"
+      />
+
+      <div className="container relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="max-w-3xl mx-auto text-center space-y-4 mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-100 border border-border text-xs font-mono font-medium text-brand-700">
-            <span>DETERMINISTIC LIFECYCLE</span>
+        <div className="max-w-3xl mb-16 space-y-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono tracking-widest text-[#A3A3A3]">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            <span>THE VERIFICATION PIPELINE</span>
           </div>
 
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-brand-950 tracking-tight">
-            From scattered evidence to a defensible audit trail.
+          <h2 className="font-serif text-4xl sm:text-5xl lg:text-5.5xl font-normal tracking-tight text-white leading-[1.05]">
+            Every finding has a <span className="italic text-emerald-400 font-serif">trail</span>.
           </h2>
 
-          <p className="text-base sm:text-lg text-text-secondary leading-relaxed">
-            AuditForge replaces opaque claims with a 7-stage deterministic pipeline where
-            every physical site capture and commercial invoice is linked, verified, and audited.
+          <p className="text-base sm:text-lg text-[#888888] leading-relaxed max-w-2xl font-sans">
+            Follow the 8-stage verification pipeline from initial project baseline to authorized
+            human auditor signoff.
           </p>
         </div>
 
-        {/* 7-Step Interactive Sequence Ribbon */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5 mb-10">
-          {STEPS.map((step, idx) => {
-            const Icon = step.icon;
-            const isSelected = activeStepIndex === idx;
+        {/* ---------------- DESKTOP HORIZONTAL TIMELINE ---------------- */}
+        <div className="hidden lg:grid grid-cols-8 gap-2 p-2 rounded-2xl bg-white/[0.02] border border-white/10 mb-8 font-mono text-xs">
+          {WORKFLOW_STAGES.map((stage) => {
+            const isSelected = stage.id === activeStageId;
+            const IconComponent = stage.icon;
             return (
               <button
-                key={step.number}
+                key={stage.id}
                 type="button"
-                onClick={() => setActiveStepIndex(idx)}
-                aria-pressed={isSelected}
-                className={`p-3.5 rounded-xl text-left border transition-all flex flex-col justify-between h-32 ${
+                onClick={() => setActiveStageId(stage.id)}
+                className={`p-3 rounded-xl flex flex-col items-start text-left transition-all relative ${
                   isSelected
-                    ? 'bg-brand-950 text-white border-brand-800 shadow-lg scale-102 ring-2 ring-signal-amber'
-                    : 'bg-surface-0 text-text-primary border-border hover:border-brand-700/50 hover:bg-surface-100'
+                    ? 'bg-white/[0.08] text-white border border-emerald-500/40 shadow-lg'
+                    : 'text-[#888888] hover:text-white hover:bg-white/[0.03] border border-transparent'
                 }`}
               >
-                <div className="flex items-center justify-between w-full">
+                <div className="flex items-center justify-between w-full mb-2">
                   <span
-                    className={`font-mono text-xs font-bold ${
-                      isSelected ? 'text-signal-amber' : 'text-brand-700'
+                    className={`text-[10px] font-bold ${
+                      isSelected ? 'text-emerald-400' : 'text-[#666666]'
                     }`}
                   >
-                    {step.number}
+                    {stage.stepNumber}
                   </span>
-                  <Icon
-                    className={`w-4 h-4 ${
-                      isSelected ? 'text-signal-amber' : 'text-text-secondary'
+                  <IconComponent
+                    className={`w-3.5 h-3.5 ${
+                      isSelected ? 'text-emerald-400' : 'text-[#666666]'
                     }`}
                   />
                 </div>
-
-                <div className="space-y-0.5">
-                  <span className="block text-xs font-bold leading-snug line-clamp-2">
-                    {step.title}
-                  </span>
-                  <span
-                    className={`block text-[10px] font-mono ${
-                      isSelected ? 'text-slate-300' : 'text-text-secondary'
-                    }`}
-                  >
-                    {step.tag}
-                  </span>
-                </div>
+                <span className="text-xs font-medium line-clamp-1 leading-snug">
+                  {stage.title}
+                </span>
+                {isSelected && (
+                  <span className="absolute bottom-1 right-2 w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                )}
               </button>
             );
           })}
         </div>
 
-        {/* Active Stage Deep-Dive Specification Card */}
-        <div className="p-6 sm:p-8 rounded-2xl bg-surface-0 border border-border shadow-md">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* Stage Summary */}
-            <div className="lg:col-span-5 space-y-4">
+        {/* ---------------- MOBILE VERTICAL SELECTOR ---------------- */}
+        <div className="lg:hidden flex overflow-x-auto gap-2 pb-4 mb-6 font-mono text-xs no-scrollbar">
+          {WORKFLOW_STAGES.map((stage) => {
+            const isSelected = stage.id === activeStageId;
+            return (
+              <button
+                key={stage.id}
+                type="button"
+                onClick={() => setActiveStageId(stage.id)}
+                className={`flex-shrink-0 px-3.5 py-2 rounded-xl transition-all ${
+                  isSelected
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-semibold'
+                    : 'bg-white/[0.03] text-[#888888] border border-white/10'
+                }`}
+              >
+                {stage.stepNumber}. {stage.title}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ---------------- ACTIVE STAGE DETAIL CARD ---------------- */}
+        <div className="p-6 sm:p-10 rounded-2xl bg-white/[0.025] border border-white/10 shadow-2xl relative overflow-hidden">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-white/10">
+            <div className="space-y-2">
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-950 text-signal-amber shadow-md">
-                  <CurrentIcon className="h-6 w-6" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs font-bold text-brand-700">
-                      STAGE {current.number} OF 07
-                    </span>
-                    <Badge variant="default">{current.tag}</Badge>
-                  </div>
-                  <h3 className="text-2xl font-bold text-brand-950">
-                    {current.title}
-                  </h3>
-                </div>
+                <span className="font-mono text-xs px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
+                  STAGE {activeStage.stepNumber} OF 08
+                </span>
+                <span className="font-mono text-xs text-[#A3A3A3] px-2.5 py-1 rounded bg-white/[0.04] border border-white/10">
+                  {activeStage.categoryLabel}
+                </span>
               </div>
-
-              <p className="text-base text-text-secondary leading-relaxed">
-                {current.shortDesc}
+              <h3 className="font-serif text-3xl sm:text-4xl font-normal text-white">
+                {activeStage.title}
+              </h3>
+              <p className="text-sm sm:text-base text-[#888888] font-sans max-w-2xl">
+                {activeStage.shortDesc}
               </p>
-
-              {/* Product Integrity Rule Box */}
-              <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200/90 text-xs text-amber-950 space-y-1">
-                <div className="flex items-center gap-1.5 font-bold font-mono text-amber-800 uppercase tracking-wider text-[11px]">
-                  <ShieldCheck className="w-4 h-4 text-amber-700" />
-                  Product Integrity Guardrail:
-                </div>
-                <p className="leading-relaxed text-amber-900 font-medium">
-                  {current.integrityRule}
-                </p>
-              </div>
             </div>
 
-            {/* Technical I/O Pipeline Breakdown */}
-            <div className="lg:col-span-7 grid grid-cols-1 gap-4 font-mono text-xs">
-              {/* Input */}
-              <div className="p-4 rounded-xl bg-surface-50 border border-border space-y-1">
-                <span className="text-[11px] font-bold text-brand-700 uppercase tracking-wider block">
-                  Input Stream / Ingestion:
-                </span>
-                <p className="text-text-primary font-sans text-xs sm:text-sm">
-                  {current.input}
-                </p>
-              </div>
-
-              {/* Processing */}
-              <div className="p-4 rounded-xl bg-surface-50 border border-border space-y-1">
-                <span className="text-[11px] font-bold text-signal-teal uppercase tracking-wider block">
-                  Engine Execution / Transformation:
-                </span>
-                <p className="text-text-primary font-sans text-xs sm:text-sm">
-                  {current.process}
-                </p>
-              </div>
-
-              {/* Output */}
-              <div className="p-4 rounded-xl bg-surface-50 border border-border space-y-1">
-                <span className="text-[11px] font-bold text-brand-950 uppercase tracking-wider block">
-                  Output & Authoritative Persistence:
-                </span>
-                <p className="text-text-primary font-sans text-xs sm:text-sm">
-                  {current.output}
-                </p>
-              </div>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                disabled={activeStageId === 'stage-1'}
+                onClick={() => {
+                  const idx = WORKFLOW_STAGES.findIndex((s) => s.id === activeStageId);
+                  if (idx > 0) setActiveStageId(WORKFLOW_STAGES[idx - 1].id);
+                }}
+                className="px-3.5 py-2 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] disabled:opacity-30 border border-white/10 text-xs font-mono text-white transition-colors"
+              >
+                ← Previous
+              </button>
+              <button
+                type="button"
+                disabled={activeStageId === 'stage-8'}
+                onClick={() => {
+                  const idx = WORKFLOW_STAGES.findIndex((s) => s.id === activeStageId);
+                  if (idx < WORKFLOW_STAGES.length - 1)
+                    setActiveStageId(WORKFLOW_STAGES[idx + 1].id);
+                }}
+                className="px-3.5 py-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-xs font-mono text-emerald-300 transition-colors"
+              >
+                Next Stage →
+              </button>
             </div>
+          </div>
+
+          {/* Detailed Input / Execution / Output Pipeline Breakdown */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-8 font-mono text-xs">
+            {/* 1. Input Source */}
+            <div className="p-4 rounded-xl bg-black/60 border border-white/10 space-y-2">
+              <span className="text-[11px] text-emerald-400 block uppercase tracking-wider font-semibold">
+                01. Input Stream
+              </span>
+              <p className="text-xs text-[#EBEBEB] leading-relaxed font-sans">
+                {activeStage.inputs}
+              </p>
+            </div>
+
+            {/* 2. Deterministic Execution */}
+            <div className="p-4 rounded-xl bg-black/60 border border-white/10 space-y-2">
+              <span className="text-[11px] text-amber-400 block uppercase tracking-wider font-semibold">
+                02. Pipeline Execution
+              </span>
+              <p className="text-xs text-[#EBEBEB] leading-relaxed font-sans">
+                {activeStage.deterministicProcess}
+              </p>
+            </div>
+
+            {/* 3. Auditable Output */}
+            <div className="p-4 rounded-xl bg-black/60 border border-white/10 space-y-2">
+              <span className="text-[11px] text-teal-400 block uppercase tracking-wider font-semibold">
+                03. Auditable Record
+              </span>
+              <p className="text-xs text-[#EBEBEB] leading-relaxed font-sans">
+                {activeStage.auditableOutput}
+              </p>
+            </div>
+          </div>
+
+          {/* Integrity Note Callout */}
+          <div className="mt-6 p-4 rounded-xl bg-white/[0.02] border border-white/10 flex items-start gap-3 text-xs text-[#888888] font-mono">
+            <ShieldCheck className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+            <span>
+              <strong className="text-white">Product Integrity Rule: </strong>
+              {activeStage.integrityRule}
+            </span>
           </div>
         </div>
       </div>

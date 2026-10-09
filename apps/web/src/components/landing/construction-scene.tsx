@@ -2,23 +2,23 @@
 
 import React, { useState, useRef, useEffect, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import { OrbitControls, useProgress, Html } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import {
   RotateCcw,
   Layers,
   Sparkles,
-  Maximize2,
   Scan,
   Compass,
   CheckCircle2,
   AlertTriangle,
   Eye,
+  Box,
 } from 'lucide-react';
 import { ConstructionModel, MilestoneId } from './construction-model';
 import { ScenePlaceholder } from './scene-placeholder';
 
-interface MilestoneData {
+export interface MilestoneData {
   id: MilestoneId;
   label: string;
   tag: string;
@@ -31,68 +31,134 @@ interface MilestoneData {
   variance: string;
 }
 
-const MILESTONES: Record<MilestoneId, MilestoneData> = {
+export const HERO_MILESTONES: Record<MilestoneId, MilestoneData> = {
   'level-1': {
     id: 'level-1',
-    label: 'Level 01',
-    tag: 'Foundation & Basement',
-    levelName: 'Substructure & Ground Slab',
-    elevation: '+0.00m to +2.20m',
+    label: 'Zone 01',
+    tag: 'Precast Substructure',
+    levelName: 'Precast Drainage & Concrete Blocks',
+    elevation: 'Datum +0.00m to +1.80m',
     criterionCode: 'CRIT-FND-101',
     criterionDescription:
-      'Base raft slab poured and cured. Foundation waterproofing inspection signoff attached.',
+      'Precast concrete pipes and perimeter masonry blocks delivered and staged per site plan.',
     evidenceRef: 'EVID-FND-0912',
     status: 'verified',
-    variance: '0.0% variance',
+    variance: '0.0% variance (verified)',
   },
   'level-2': {
     id: 'level-2',
-    label: 'Level 02',
-    tag: 'Columns & Core (Active)',
-    levelName: 'Reinforced Columns & Shear Core',
-    elevation: '+2.20m to +4.40m',
-    criterionCode: 'CRIT-COL-204',
+    label: 'Zone 02',
+    tag: 'Cement Intake (Active)',
+    levelName: 'Palletized Cement Bags & Delivery Intake',
+    elevation: 'Datum +0.00m to +2.40m',
+    criterionCode: 'CRIT-MAT-204',
     criterionDescription:
-      'Structural columns cured. Vertical plumb line within ±5mm tolerance across grid C1-D3.',
+      'Challan match: 50 bags OPC-53 cement palletized. Weight ticket and live camera site capture cross-referenced.',
     evidenceRef: 'EVID-LIVE-842',
     status: 'observed',
-    variance: 'Inconclusive rebar tie (review needed)',
+    variance: 'Shortfall anomaly (-20 bags signal)',
   },
   'level-3': {
     id: 'level-3',
-    label: 'Level 03',
-    tag: 'Framing & Steel Deck',
-    levelName: 'Primary Beams & Active Decking',
-    elevation: '+4.40m to +6.60m',
-    criterionCode: 'CRIT-FRM-305',
+    label: 'Zone 03',
+    tag: 'Pipe Stacks & Dunnage',
+    levelName: 'Reinforced Pipe Stacks on Timber Dunnage',
+    elevation: 'Datum +0.00m to +3.20m',
+    criterionCode: 'CRIT-STK-305',
     criterionDescription:
-      'Primary steel beams bolted to shear core. Concrete decking formwork shuttering underway.',
-    evidenceRef: 'EVID-STL-4103',
+      'Industrial concrete pipe tier stacked on timber bearers. Stacking protocol checked against safety clearance limits.',
+    evidenceRef: 'EVID-PIP-4103',
     status: 'warning',
-    variance: 'Cement bags delivery shortfall (-20 bags)',
+    variance: 'Stack height within limits; visual inspection noted',
   },
   'level-4': {
     id: 'level-4',
-    label: 'Level 04',
-    tag: 'Top Deck & Scaffolding',
-    levelName: 'Perimeter Scaffolding & Rigging',
-    elevation: '+6.60m to +8.80m',
-    criterionCode: 'CRIT-SCF-402',
+    label: 'Zone 04',
+    tag: 'Rigging & Equipment',
+    levelName: 'Heavy Cable Reels & Site Rigging Staging',
+    elevation: 'Datum +0.00m to +2.10m',
+    criterionCode: 'CRIT-TLS-402',
     criterionDescription:
-      'Perimeter safety netting installed. Tower crane hoist clearance validated.',
-    evidenceRef: 'EVID-CRN-5520',
+      'Site rigging, timber reel spools, sledgehammers, and verified hand tools cataloged for ongoing foundation pour.',
+    evidenceRef: 'EVID-EQP-5520',
     status: 'observed',
-    variance: 'Inspection scheduled',
+    variance: 'Tool manifest logged & verified',
   },
 };
 
-export function ConstructionScene() {
-  const [activeMilestone, setActiveMilestone] = useState<MilestoneId>('level-2');
-  const [wireframeMode, setWireframeMode] = useState<boolean>(false);
+/**
+ * 3D Model Streaming Progress HUD
+ */
+function ModelProgressLoader() {
+  const { progress, active } = useProgress();
+  if (!active && progress === 100) return null;
+
+  return (
+    <Html center zIndexRange={[100, 0]}>
+      <div className="flex flex-col items-center justify-center p-5 rounded-2xl bg-[#050505]/95 border border-emerald-500/40 shadow-2xl backdrop-blur-xl min-w-[260px] text-center select-none pointer-events-none">
+        <div className="relative w-12 h-12 mb-3 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-full border-2 border-emerald-500/20 border-t-emerald-400 animate-spin" />
+          <span className="absolute text-[11px] font-mono font-bold text-emerald-400">
+            {Math.round(progress)}%
+          </span>
+        </div>
+        <p className="text-xs font-semibold text-white tracking-wide">
+          Streaming 3D Building Model
+        </p>
+        <p className="text-[10px] font-mono text-[#888888] mt-0.5">
+          GLTF PBR Assets (43 MB)
+        </p>
+        <div className="w-full bg-white/10 rounded-full h-1.5 mt-3 overflow-hidden">
+          <div
+            className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full transition-all duration-200"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </div>
+    </Html>
+  );
+}
+
+interface ConstructionSceneProps {
+  activeMilestone?: MilestoneId;
+  onMilestoneChange?: (id: MilestoneId) => void;
+  wireframeMode?: boolean;
+  onWireframeToggle?: () => void;
+  showOverlayControls?: boolean;
+}
+
+export function ConstructionScene({
+  activeMilestone: externalMilestone,
+  onMilestoneChange,
+  wireframeMode: externalWireframe,
+  onWireframeToggle,
+  showOverlayControls = true,
+}: ConstructionSceneProps) {
+  const [internalMilestone, setInternalMilestone] = useState<MilestoneId>('level-2');
+  const [internalWireframe, setInternalWireframe] = useState<boolean>(false);
   const [hasWebGL, setHasWebGL] = useState<boolean | null>(null);
   const controlsRef = useRef<OrbitControlsImpl>(null);
 
-  // Check WebGL support safely
+  const activeMilestone = externalMilestone ?? internalMilestone;
+  const wireframeMode = externalWireframe ?? internalWireframe;
+
+  const setActiveMilestone = (id: MilestoneId) => {
+    if (onMilestoneChange) {
+      onMilestoneChange(id);
+    } else {
+      setInternalMilestone(id);
+    }
+  };
+
+  const toggleWireframe = () => {
+    if (onWireframeToggle) {
+      onWireframeToggle();
+    } else {
+      setInternalWireframe((prev) => !prev);
+    }
+  };
+
+  // Check WebGL availability safely
   useEffect(() => {
     try {
       const canvas = document.createElement('canvas');
@@ -110,43 +176,23 @@ export function ConstructionScene() {
     }
   };
 
-  // If WebGL is unavailable, render the accessible high-fidelity fallback
+  // If WebGL is unavailable, render fallback
   if (hasWebGL === false) {
     return <ScenePlaceholder />;
   }
 
-  const current = MILESTONES[activeMilestone];
+  const current = HERO_MILESTONES[activeMilestone];
 
   return (
     <div
       role="region"
-      aria-label="Interactive 3D Architectural Construction Model"
-      className="relative w-full h-[520px] sm:h-[580px] lg:h-[640px] rounded-2xl overflow-hidden bg-slate-900 border border-slate-700/60 shadow-2xl flex flex-col justify-between"
+      aria-label="Interactive 3D Architectural Construction Building"
+      className="relative w-full h-full overflow-hidden select-none"
     >
-      {/* Background Architectural Blueprint Grid */}
-      <div
-        className="absolute inset-0 pointer-events-none opacity-25"
-        style={{
-          backgroundImage: `
-            radial-gradient(circle at 1px 1px, rgba(233, 162, 59, 0.3) 1px, transparent 0),
-            linear-gradient(to right, rgba(56, 189, 248, 0.08) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(56, 189, 248, 0.08) 1px, transparent 1px)
-          `,
-          backgroundSize: '24px 24px, 48px 48px, 48px 48px',
-        }}
-        aria-hidden="true"
-      />
-
-      {/* Radial lighting ambient effect */}
-      <div
-        className="absolute top-1/4 right-1/4 w-80 h-80 rounded-full bg-brand-600/15 blur-3xl pointer-events-none"
-        aria-hidden="true"
-      />
-
       {/* ---------------- 3D CANVAS LAYER ---------------- */}
       <div className="absolute inset-0 cursor-grab active:cursor-grabbing">
         <Canvas
-          camera={{ position: [15, 12, 17], fov: 36, near: 0.1, far: 100 }}
+          camera={{ position: [8.0, 5.8, 9.8], fov: 38, near: 0.1, far: 100 }}
           gl={{
             antialias: true,
             alpha: true,
@@ -154,21 +200,31 @@ export function ConstructionScene() {
           }}
           dpr={[1, 1.5]}
         >
-          {/* Lighting Rig */}
-          <ambientLight intensity={0.9} />
+          {/* Architectural Lighting Rig */}
+          <ambientLight intensity={1.5} />
+          <hemisphereLight args={['#ffffff', '#0f172a', 1.0]} />
+          {/* Key warm directional sunlight */}
           <directionalLight
-            position={[12, 22, 14]}
-            intensity={1.6}
+            position={[14, 20, 16]}
+            intensity={2.4}
             color="#FFFBEB"
+            castShadow
           />
+          {/* Subtle Emerald rim backlight */}
           <directionalLight
-            position={[-12, 8, -10]}
-            intensity={0.6}
+            position={[-12, 10, -12]}
+            intensity={1.2}
+            color="#10B981"
+          />
+          {/* Cool fill light */}
+          <directionalLight
+            position={[0, 12, 14]}
+            intensity={0.9}
             color="#93C5FD"
           />
-          <pointLight position={[0, 6, 0]} intensity={0.4} color="#E9A23B" />
+          <pointLight position={[3, 5, 2]} intensity={1.8} color="#E9A23B" />
 
-          <Suspense fallback={null}>
+          <Suspense fallback={<ModelProgressLoader />}>
             <ConstructionModel
               activeMilestone={activeMilestone}
               wireframeMode={wireframeMode}
@@ -180,143 +236,77 @@ export function ConstructionScene() {
             makeDefault
             enablePan={false}
             enableDamping
-            dampingFactor={0.05}
-            minDistance={11}
-            maxDistance={32}
-            minPolarAngle={Math.PI / 6}
-            maxPolarAngle={Math.PI / 2 - 0.06}
+            dampingFactor={0.06}
+            minDistance={4}
+            maxDistance={25}
+            minPolarAngle={Math.PI / 8}
+            maxPolarAngle={Math.PI / 2 - 0.05}
+            target={[1.2, 0.8, 0]}
           />
         </Canvas>
       </div>
 
-      {/* ---------------- TOP HUD OVERLAY ---------------- */}
-      <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 p-4 sm:p-5 pointer-events-none">
-        {/* Technical Coordinate & Site Datum Badge */}
-        <div className="pointer-events-auto flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-950/85 backdrop-blur-md border border-slate-700/80 shadow-md text-slate-300 text-xs font-mono">
-          <Compass className="w-3.5 h-3.5 text-signal-amber animate-spin-slow" />
-          <span className="font-semibold text-white">NORTHSTAR TOWER</span>
-          <span className="text-slate-500">|</span>
-          <span className="text-slate-400">DATUM {current.elevation}</span>
-        </div>
-
-        {/* Viewport Control Actions */}
-        <div className="pointer-events-auto flex items-center gap-2">
-          {/* Wireframe / Blueprint Toggle */}
-          <button
-            type="button"
-            onClick={() => setWireframeMode(!wireframeMode)}
-            aria-label="Toggle technical wireframe blueprint mode"
-            title="Toggle technical blueprint wireframe"
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium font-mono border transition-all shadow-md ${
-              wireframeMode
-                ? 'bg-blue-600/90 text-white border-blue-400 shadow-blue-500/20'
-                : 'bg-slate-950/85 text-slate-300 border-slate-700 hover:text-white hover:border-slate-500'
-            }`}
-          >
-            <Scan className="w-3.5 h-3.5 text-blue-400" />
-            <span className="hidden sm:inline">Blueprint Mode</span>
-          </button>
-
-          {/* Reset Camera View */}
-          <button
-            type="button"
-            onClick={handleResetCamera}
-            aria-label="Reset 3D camera to default isometric framing"
-            title="Reset isometric perspective"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-950/85 text-slate-300 border border-slate-700 hover:text-white hover:border-slate-500 text-xs font-medium font-mono transition-all shadow-md"
-          >
-            <RotateCcw className="w-3.5 h-3.5 text-signal-amber" />
-            <span className="hidden sm:inline">Reset View</span>
-          </button>
-        </div>
-      </div>
-
-      {/* ---------------- BOTTOM HUD & INSPECTION CALLOUT ---------------- */}
-      <div className="relative z-10 p-4 sm:p-5 space-y-3 pointer-events-none">
-        {/* Milestone Selector Tabs */}
-        <div className="pointer-events-auto flex flex-wrap items-center gap-1.5 p-1.5 rounded-xl bg-slate-950/90 backdrop-blur-md border border-slate-800 shadow-xl max-w-fit">
-          {(Object.keys(MILESTONES) as MilestoneId[]).map((mId) => {
-            const m = MILESTONES[mId];
-            const isSelected = activeMilestone === mId;
-            return (
-              <button
-                key={mId}
-                type="button"
-                onClick={() => setActiveMilestone(mId)}
-                aria-pressed={isSelected}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                  isSelected
-                    ? 'bg-signal-amber text-slate-950 font-semibold shadow-md'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
-                }`}
-              >
-                <Layers
-                  className={`w-3.5 h-3.5 ${
-                    isSelected ? 'text-slate-950' : 'text-slate-400'
-                  }`}
-                />
-                <span>{m.label}</span>
-                <span
-                  className={`text-[10px] hidden md:inline font-mono ${
-                    isSelected ? 'text-slate-800 font-bold' : 'text-slate-400'
+      {/* ---------------- FLOATING TECHNICAL CONTROLS HUD ---------------- */}
+      {showOverlayControls && (
+        <div className="absolute bottom-6 right-6 z-20 flex flex-col items-end gap-3 pointer-events-none">
+          {/* Inspection Zone Selector Tabs */}
+          <div className="pointer-events-auto flex items-center gap-1 p-1 rounded-xl bg-[#050505]/85 backdrop-blur-md border border-white/10 shadow-2xl">
+            {(Object.keys(HERO_MILESTONES) as MilestoneId[]).map((mId) => {
+              const m = HERO_MILESTONES[mId];
+              const isSelected = activeMilestone === mId;
+              return (
+                <button
+                  key={mId}
+                  type="button"
+                  onClick={() => setActiveMilestone(mId)}
+                  aria-pressed={isSelected}
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono transition-all ${
+                    isSelected
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-semibold shadow-sm'
+                      : 'text-[#888888] hover:text-white hover:bg-white/5 border border-transparent'
                   }`}
                 >
-                  ({m.tag})
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Detailed Inspection Criterion Callout Card */}
-        <div className="pointer-events-auto max-w-lg p-3.5 sm:p-4 rounded-xl bg-slate-950/90 backdrop-blur-md border border-slate-800 text-left shadow-2xl transition-all">
-          <div className="flex items-center justify-between gap-3 mb-2">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-brand-900/90 text-signal-amber border border-brand-700 text-[11px] font-mono font-medium">
-                <Sparkles className="w-3 h-3" />
-                {current.criterionCode}
-              </span>
-              <span className="text-xs font-mono text-slate-300 font-medium">
-                REF: {current.evidenceRef}
-              </span>
-            </div>
-
-            {current.status === 'verified' && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-400">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                Verified
-              </span>
-            )}
-            {current.status === 'observed' && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-signal-amber">
-                <Eye className="w-3.5 h-3.5" />
-                Review Required
-              </span>
-            )}
-            {current.status === 'warning' && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-rose-400">
-                <AlertTriangle className="w-3.5 h-3.5" />
-                Discrepancy Signal
-              </span>
-            )}
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      isSelected ? 'bg-emerald-400' : 'bg-white/30'
+                    }`}
+                  />
+                  <span>{m.label}</span>
+                </button>
+              );
+            })}
           </div>
 
-          <h4 className="text-xs sm:text-sm font-semibold text-white mb-1">
-            {current.levelName}
-          </h4>
+          {/* Technical Viewport Action Buttons */}
+          <div className="pointer-events-auto flex items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleWireframe}
+              aria-label="Toggle technical wireframe blueprint mode"
+              title="Toggle technical blueprint wireframe"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono border transition-all shadow-md ${
+                wireframeMode
+                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                  : 'bg-[#050505]/85 text-[#A3A3A3] border-white/10 hover:text-white hover:border-white/25'
+              }`}
+            >
+              <Scan className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Blueprint Mode</span>
+            </button>
 
-          <p className="text-xs text-slate-300 leading-relaxed">
-            {current.criterionDescription}
-          </p>
-
-          <div className="mt-2.5 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] font-mono text-slate-400">
-            <span>Variance Check: {current.variance}</span>
-            <span className="text-slate-400 text-[10px]">
-              *Illustrative demo fixture
-            </span>
+            <button
+              type="button"
+              onClick={handleResetCamera}
+              aria-label="Reset 3D camera to default framing"
+              title="Reset isometric perspective"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#050505]/85 text-[#A3A3A3] border border-white/10 hover:text-white hover:border-white/25 text-xs font-mono transition-all shadow-md"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Reset View</span>
+            </button>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
