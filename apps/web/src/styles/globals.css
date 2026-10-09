@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --brand-950: #101B2D;
+    --brand-800: #1C3555;
+    --brand-700: #24527A;
+    --brand-600: #2D6FA3;
+    --signal-amber: #E9A23B;
+    --signal-teal: #1C8C83;
+    --danger-700: #B42318;
+    --warning-700: #9A6700;
+    --success-700: #18794E;
+    --surface-0: #FFFFFF;
+    --surface-50: #F7F9FC;
+    --surface-100: #EEF2F7;
+    --border: #D7DEE8;
+    --text-primary: #172334;
+    --text-secondary: #536276;
+  }
+
+  body {
+    color: var(--text-primary);
+    background-color: var(--surface-50);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Tabular numbers for dates, metrics, currency, and quantities */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}
